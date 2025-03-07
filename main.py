@@ -29,7 +29,7 @@ sfid = fluid.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")
 fluid.program_select(0, sfid, 0, 73)
 
 # Charger le fichier MIDI
-midi_file = mido.MidiFile("midi/amstrong.mid")
+midi_file = mido.MidiFile("midi/Morning.mid")
 
 # Initialisation de pygame
 pygame.mixer.init()
@@ -100,7 +100,7 @@ def lowpass_filter(data, cutoff=1000, fs=RATE, order=5):
 # PRISE DU FLUX AUDIO EN TEMPS REEL
 prev_event = None
 midi_notes = [msg for msg in midi_file if msg.type == 'note_on' and msg.velocity !=0]  # Extraire les notes MIDI
-print(midi_notes)
+# print(midi_notes)
 note_id = -1
 
 try:
