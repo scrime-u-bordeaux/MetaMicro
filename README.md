@@ -4,7 +4,7 @@ Avant de lancer, assurez-vous d'avoir :
 
 - **Python 3.10+** installé.
 - Un **microphone** configuré comme **entrée audio**.
-- Un **casque** utilisé comme **sortie audio** (évite les interférences).
+- Un **casque** utilisé comme **sortie audio** 
 - Des **ports d’entrée et de sortie différents** (exemple : Micro USB et Casque Jack).
 
 ---
@@ -22,8 +22,8 @@ pip install pygame pyaudio mido fluidsynth librosa numpy pandas matplotlib jobli
 ## Configuration de l'Audio
 
 **Important** :  
-**Vérifiez que l’entrée se fait bien via un micro et la sortie via un casque.** 
-**Les ports d’entrée et de sortie doivent être différents.**  
+- Vérifiez que l’entrée se fait bien via un micro et la sortie via un casque.** 
+- Les ports d’entrée et de sortie doivent être différents.**  
 
 ### Changer la source et la sortie audio sur Linux :
 Si vous utilisez Linux, vous pouvez configurer les ports avec `pactl` :
