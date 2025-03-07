@@ -22,8 +22,8 @@ pip install pygame pyaudio mido fluidsynth librosa numpy pandas matplotlib jobli
 ## Configuration de l'Audio
 
 **Important** :  
-- Vérifiez que l’entrée se fait bien via un micro et la sortie via un casque.** 
-- Les ports d’entrée et de sortie doivent être différents.**  
+- Vérifiez que l’entrée se fait bien via un micro et la sortie via un casque.
+- Les ports d’entrée et de sortie doivent être différents.
 
 ### Changer la source et la sortie audio sur Linux :
 Si vous utilisez Linux, vous pouvez configurer les ports avec `pactl` :
