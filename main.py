@@ -1,3 +1,4 @@
+# venv
 import pyaudio # type: ignore
 import pandas as pd # type: ignore
 import numpy as np # type: ignore
@@ -18,6 +19,8 @@ import fluidsynth # type: ignore
 # CHANGER LA SOURCE ET LA SORTIE 
 # pactl set-default-source alsa_input.usb-Focusrite_Scarlett_4i4_USB_D89YRE90C17918-00.multichannel-input
 # pactl set-default-sink alsa_output.pci-0000_00_1f.3.analog-stereo
+# pactl set-default-sink alsa_output.pci-0000_00_1f.3.analog-stereo
+
 
 ##########################################################################################
 # INITIALISATION ET CHARGEMENT DES DONNEES
@@ -29,14 +32,14 @@ sfid = fluid.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")
 fluid.program_select(0, sfid, 0, 73)
 
 # Charger le fichier MIDI
-midi_file = mido.MidiFile("midi/Morning.mid")
+midi_file = mido.MidiFile("midi/potter.mid")
 
 # Initialisation de pygame
 pygame.mixer.init()
 pygame.mixer.music.load("audio/flute_son.wav")
 
 # Charger le modèle XGBoost
-knn_model = joblib.load("diff_arti_temps_reel/knn_model.pkl")
+knn_model = joblib.load("knn_model.pkl")
 
 # Paramètres audio
 filename = "audio/recorded.wav"
@@ -80,7 +83,6 @@ fft_window = librosa.util.pad_center(fft_window, size=n_fft)
 
 batch_size = 10  # Nombre de blocs MFCC à accumuler avant prédiction
 mfcc_buffer = []
-time_buffer = []
 tab_pred = []
 events = []
 
@@ -89,12 +91,12 @@ last_prediction = None
 
 ##########################################################################################
 # DEFINITION DU FILTRE PASSE BAS
-def lowpass_filter(data, cutoff=1000, fs=RATE, order=5):
-    """Applique un filtre passe-bas de Butterworth"""
-    nyquist = 0.5 * fs
-    normal_cutoff = cutoff / nyquist
-    b, a = butter(order, normal_cutoff, btype="low", analog=False)
-    return lfilter(b, a, data)
+nyquist = 0.5 * RATE
+cutoff = 2000
+order=1
+normal_cutoff = cutoff / nyquist
+b, a = butter(order, normal_cutoff, btype="low", analog=False)
+
 
 ##########################################################################################
 # PRISE DU FLUX AUDIO EN TEMPS REEL
@@ -106,12 +108,12 @@ note_id = -1
 try:
     while True:
         data = stream.read(CHUNK)  
-        audio_frames.append(data)
-        audio_data = np.frombuffer(data, dtype=np.int16)  
-        filtered_audio = lowpass_filter(audio_data, cutoff=2000, fs=RATE, order=1)
-        frames.extend(filtered_audio)
+        audio_data = np.frombuffer(data, dtype=np.int16) 
+        # audio_frames.append(data) # Decommenter pour l'affichage
 
         # Appliquer le filtre passe-bas
+        filtered_audio = lfilter(b, a, audio_data)
+        # frames.extend(filtered_audio) # Decommenter pour l'affichage
 
         # Calcul des MFCCs
         block = filtered_audio.astype(np.float32) / 32768.0
@@ -125,22 +127,21 @@ try:
 
         # Ajouter à la mémoire tampon
         mfcc_buffer.append(mfcc_vector)
-        time_buffer.append(start / fs)
 
         # Prédire quand on a accumulé assez de blocs
         if len(mfcc_buffer) >= batch_size:
             df_mfcc = pd.DataFrame(mfcc_buffer)
-            predictions = knn_model.predict(df_mfcc)  # Prédiction sur plusieurs MFCCs
-            tab_pred.extend(predictions)
+            predictions = knn_model.predict(df_mfcc)  
+            # tab_pred.extend(predictions) # Decommenter pour l'affichage
 
-            for t, pred in zip(time_buffer, predictions):
+            for pred in predictions:
                 if pred != last_prediction:
                     # label_mapping = {0: "t", 1: "a", 2: "s"}
                     # print(f"Prédiction : {label_mapping[pred]}, Time : {t:.2f} sec")
                     if pred == 0 and prev_event != 0:  # Afficher uniquement le premier 0
                         # pygame.mixer.music.play()
                         print("ON")
-                        events.append(("ON", start / fs))
+                        # events.append(("ON", start / fs)) # Decommenter pour l'affichage
                         prev_event = 0
 
                         # Lancer les notes midi 
@@ -153,7 +154,7 @@ try:
                     elif pred == 2 and prev_event != 2:  # Afficher uniquement le premier 2
                         # pygame.mixer.music.stop()
                         print("OFF")
-                        events.append(("OFF", start / fs))
+                        # events.append(("OFF", start / fs)) # Decommenter pour l'affichage
                         prev_event = 2
 
                         # # Arrêter toutes les notes en cours
@@ -166,7 +167,6 @@ try:
 
             # Réinitialiser les buffers
             mfcc_buffer = []
-            time_buffer = []
 
 except KeyboardInterrupt:
     print("\nArrêt de l'enregistrement.")
