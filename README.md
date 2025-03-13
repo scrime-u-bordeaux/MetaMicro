@@ -52,11 +52,12 @@ pip install -r requirements.txt
 
 #### **Télécharger et ajouter la SoundFont FluidR3_GM.sf2**
 
-FluidSynth nécessite une SoundFont pour fonctionner. Téléchargez le fichier `FluidR3_GM.sf2` depuis ce lien :
+Téléchargez le fichier `FluidR3_GM.sf2` depuis ce lien :
 
 [FluidR3_GM.sf2](https://member.keymusician.com/Member/FluidR3_GM/index.html)
 
 Puis placez-le **à la racine du projet**.
+
 ---
 
 ## Configuration de l'Audio
@@ -160,6 +161,12 @@ sudo setcap 'cap_sys_nice=eip' $(which fluidsynth)
   choco install jackd2
   ```
 ---
+
+
+
+
+
+
 
 
 
