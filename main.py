@@ -5,11 +5,10 @@ import numpy as np
 import joblib # type: ignore
 import matplotlib.pyplot as plt 
 import librosa 
-import time
 from scipy.signal import butter, lfilter 
 import mido # type: ignore
 import fluidsynth # type: ignore
-import modif_libro.spectral as spectral
+import scripts.modif_libro.spectral as spectral
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -17,21 +16,20 @@ import modif_libro.spectral as spectral
 # pactl set-default-sink alsa_output.pci-0000_00_1f.3.analog-stereo
 # pactl set-default-sink alsa_output.pci-0000_00_1f.3.analog-stereo
 
-
 ##########################################################################################
 # INITIALISATION ET CHARGEMENT DES DONNEES
 
 # Initialiser FluidSynth avec une soundfont
 fluid = fluidsynth.Synth()
 fluid.start()
-sfid = fluid.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")  
+sfid = fluid.sfload("FluidR3_GM.sf2")  
 fluid.program_select(0, sfid, 0, 73)
 
 # Charger le fichier MIDI
 midi_file = mido.MidiFile("midi/potter.mid")
 
 # Charger le modèle XGBoost
-knn_model = joblib.load("diff_arti_temps_reel/knn_model.pkl")
+knn_model = joblib.load("scripts/knn_model.pkl")
 
 # Paramètres audio
 filename = "audio/recorded.wav"
@@ -51,6 +49,7 @@ stream = p.open(
     channels=CHANNELS,
     rate=RATE,
     input=True,
+    # input_device_index=<indice_du_micro>,
     frames_per_buffer=CHUNK
 )
 audio_frames = []
@@ -87,8 +86,7 @@ b, a = butter(order, normal_cutoff, btype="low", analog=False)
 ##########################################################################################
 # PRISE DU FLUX AUDIO EN TEMPS REEL
 prev_event = None
-midi_notes = [msg for msg in midi_file if msg.type == 'note_on' and msg.velocity !=0]  # Extraire les notes MIDI
-# print(midi_notes)
+midi_notes = [msg for msg in midi_file if msg.type == 'note_on' and msg.velocity !=0]   
 note_id = -1
 
 try:
