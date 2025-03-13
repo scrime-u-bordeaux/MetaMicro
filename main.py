@@ -1,18 +1,18 @@
-import pyaudio # type: ignore
-import pandas as pd # type: ignore
-import numpy as np # type: ignore
+import pyaudio
+import pandas as pd
+import numpy as np
 import time
-import joblib # type: ignore
+import joblib 
 import matplotlib.pyplot as plt # type: ignore
 import wave
 import librosa # type: ignore
 import pdb
 import time
-import xgboost as xgb # type: ignore
+# import xgboost as xgb # type: ignore
 from scipy.signal import butter, lfilter # type: ignore
-import pygame # type: ignore
+# import pygame # type: ignore
 import mido # type: ignore
-import fluidsynth # type: ignore
+import fluidsynth # type: ignore # INSTALLER fluidsynth
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -25,15 +25,15 @@ import fluidsynth # type: ignore
 # Initialiser FluidSynth avec une soundfont
 fluid = fluidsynth.Synth()
 fluid.start()
-sfid = fluid.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")  
+sfid = fluid.sfload("FluidR3_GM.sf2") 
 fluid.program_select(0, sfid, 0, 73)
 
 # Charger le fichier MIDI
 midi_file = mido.MidiFile("midi/Morning.mid")
 
 # Initialisation de pygame
-pygame.mixer.init()
-pygame.mixer.music.load("audio/flute_son.wav")
+# pygame.mixer.init()
+# pygame.mixer.music.load("audio/flute_son.wav")
 
 # Charger le modèle XGBoost
 knn_model = joblib.load("diff_arti_temps_reel/knn_model.pkl")
@@ -56,8 +56,9 @@ stream = p.open(
     channels=CHANNELS,
     rate=RATE,
     input=True,
-    frames_per_buffer=CHUNK
-)
+    frames_per_buffer=CHUNK,
+    input_device_index=2 # rajouter l'input device
+) 
 audio_frames = []
 frames = []
 
@@ -70,7 +71,7 @@ window = np.ones(min(512, CHUNK))
 win_length = n_fft
 
 # Build a Mel filter
-mel_basis = librosa.filters.mel(sr=RATE, n_fft=n_fft, fmax=RATE/2, n_mels=10)
+mel_basis = librosa.filters.mel(sr=RATE, n_fft=n_fft, fmax=RATE/2, n_mels=10) # modif la librairire
 
 # Calcul FFT
 fft_window = librosa.filters.get_window(window, win_length, fftbins=True)
@@ -89,12 +90,11 @@ last_prediction = None
 
 ##########################################################################################
 # DEFINITION DU FILTRE PASSE BAS
-def lowpass_filter(data, cutoff=1000, fs=RATE, order=5):
-    """Applique un filtre passe-bas de Butterworth"""
-    nyquist = 0.5 * fs
-    normal_cutoff = cutoff / nyquist
-    b, a = butter(order, normal_cutoff, btype="low", analog=False)
-    return lfilter(b, a, data)
+cutoff=2000
+order=1
+nyquist = 0.5 * RATE
+normal_cutoff = cutoff / nyquist
+b, a = butter(order, normal_cutoff, btype="low", analog=False)
 
 ##########################################################################################
 # PRISE DU FLUX AUDIO EN TEMPS REEL
@@ -105,42 +105,41 @@ note_id = -1
 
 try:
     while True:
-        data = stream.read(CHUNK)  
-        audio_frames.append(data)
+        data = stream.read(CHUNK, exception_on_overflow=False) 
+        # audio_frames.append(data) # Affichage
         audio_data = np.frombuffer(data, dtype=np.int16)  
-        filtered_audio = lowpass_filter(audio_data, cutoff=2000, fs=RATE, order=1)
-        frames.extend(filtered_audio)
+        filtered_audio =  lfilter(b, a, audio_data)
+        # frames.extend(filtered_audio) # Affichage
 
-        # Appliquer le filtre passe-bas
 
         # Calcul des MFCCs
         block = filtered_audio.astype(np.float32) / 32768.0
         fs = RATE
-        start += len(filtered_audio)
+        # start += len(filtered_audio) # Affichage
         
         mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs, n_mfcc=13,
                                     n_fft=min(512, len(block)), hop_length=32,
                                     n_mels=10, fmax=fs/2, mel_basis=mel_basis)
         mfcc_vector = mfcc.flatten()
-
         # Ajouter à la mémoire tampon
         mfcc_buffer.append(mfcc_vector)
-        time_buffer.append(start / fs)
+        # time_buffer.append(start / fs) # Affichage
 
         # Prédire quand on a accumulé assez de blocs
         if len(mfcc_buffer) >= batch_size:
             df_mfcc = pd.DataFrame(mfcc_buffer)
             predictions = knn_model.predict(df_mfcc)  # Prédiction sur plusieurs MFCCs
-            tab_pred.extend(predictions)
+            # tab_pred.extend(predictions) # Affichage
 
-            for t, pred in zip(time_buffer, predictions):
+            # for t, pred in zip(time_buffer, predictions): # Affichage
+            for pred in predictions:
                 if pred != last_prediction:
                     # label_mapping = {0: "t", 1: "a", 2: "s"}
                     # print(f"Prédiction : {label_mapping[pred]}, Time : {t:.2f} sec")
                     if pred == 0 and prev_event != 0:  # Afficher uniquement le premier 0
                         # pygame.mixer.music.play()
                         print("ON")
-                        events.append(("ON", start / fs))
+                        # events.append(("ON", start / fs)) # Affichage
                         prev_event = 0
 
                         # Lancer les notes midi 
@@ -153,7 +152,7 @@ try:
                     elif pred == 2 and prev_event != 2:  # Afficher uniquement le premier 2
                         # pygame.mixer.music.stop()
                         print("OFF")
-                        events.append(("OFF", start / fs))
+                        # events.append(("OFF", start / fs)) # Affichage
                         prev_event = 2
 
                         # # Arrêter toutes les notes en cours
