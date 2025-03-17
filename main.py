@@ -26,9 +26,9 @@ sfid = fluid.sfload("FluidR3_GM.sf2")
 fluid.program_select(0, sfid, 0, 73)
 
 # Charger le fichier MIDI
-midi_file = mido.MidiFile("midi/potter.mid")
+midi_file = mido.MidiFile("midi/frozen.mid")
 
-# Charger le modèle XGBoost
+# Charger le modèle
 knn_model = joblib.load("scripts/knn_model.pkl")
 
 # Paramètres audio
@@ -87,11 +87,12 @@ b, a = butter(order, normal_cutoff, btype="low", analog=False)
 
 ##########################################################################################
 # PRISE DU FLUX AUDIO EN TEMPS REEL
-prev_event = None
+etat = None
 midi_notes = [msg for msg in midi_file if msg.type == 'note_on' and msg.velocity !=0]   
 note_id = -1
 
 try:
+    print("go")
     while True:
         data = stream.read(CHUNK, exception_on_overflow=False) 
         audio_data = np.frombuffer(data, dtype=np.int16) 
@@ -119,15 +120,16 @@ try:
             # tab_pred.extend(predictions) # Decommenter pour l'affichage
 
             for pred in predictions:
-                if pred != last_prediction:
-                    if pred == 0 and prev_event != 0:  # Afficher uniquement le premier 0
-                        print("ON")
-                        prev_event = 0
+                if pred != last_prediction: 
+                    # print("pred:", pred)
+                    if pred == 0 and etat != 0:  # Afficher uniquement le premier 0
+                        # print("ON")
+                        etat = 0 # etat O = ON
                         fluid.noteon(0, midi_notes[note_id].note, midi_notes[note_id].velocity)
 
-                    elif pred == 2 and prev_event != 2:  # Afficher uniquement le premier 2
-                        print("OFF")
-                        prev_event = 2
+                    elif pred == 2 and etat != 2:  # Afficher uniquement le premier 2
+                        # print("OFF")
+                        etat = 2 # etat 2 = OFF
                         fluid.noteoff(0,  midi_notes[note_id].note)
                         note_id += 1
 
