@@ -8,7 +8,7 @@ import librosa
 from scipy.signal import butter, lfilter 
 import mido # type: ignore
 import fluidsynth # type: ignore
-import scripts.modif_libro.spectral as spectral
+import scripts.modif_libro.spectral as spectral     
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -49,7 +49,9 @@ stream = p.open(
     channels=CHANNELS,
     rate=RATE,
     input=True,
-    # input_device_index=<indice_du_micro>,
+    output=True,
+    # input_device_index=1,
+    # output_device_index=1,
     frames_per_buffer=CHUNK
 )
 audio_frames = []
@@ -91,7 +93,7 @@ note_id = -1
 
 try:
     while True:
-        data = stream.read(CHUNK)  
+        data = stream.read(CHUNK, exception_on_overflow=False) 
         audio_data = np.frombuffer(data, dtype=np.int16) 
 
         # Appliquer le filtre passe-bas
