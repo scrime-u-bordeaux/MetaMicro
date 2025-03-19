@@ -126,7 +126,7 @@ try:
                 if pred != last_prediction: 
                     # print("pred:", pred)
                     if pred == 0 and etat != 0:  # Afficher uniquement le premier 0
-                        print("ON")
+                        # print("ON")
                         etat = 0 # etat O = ON
                         # fluid.noteon(0, midi_notes[note_id].note, midi_notes[note_id].velocity)
                         midi_out.send(mido.Message('note_on', note=midi_notes[note_id].note, velocity=midi_notes[note_id].velocity))
