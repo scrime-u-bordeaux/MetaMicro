@@ -26,7 +26,7 @@ sfid = fluid.sfload("FluidR3_GM.sf2")
 fluid.program_select(0, sfid, 0, 73)
 
 # Charger le fichier MIDI
-midi_file = mido.MidiFile("midi/frozen.mid")
+midi_file = mido.MidiFile("midi/potter.mid")
 
 # Charger le modèle
 knn_model = joblib.load("scripts/knn_model.pkl")
