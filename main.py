@@ -25,8 +25,11 @@ fluid.start()
 sfid = fluid.sfload("FluidR3_GM.sf2")  
 fluid.program_select(0, sfid, 0, 73)
 
+port_name = "Gestionnaire IAC Bus 1" 
+midi_out = mido.open_output(port_name)
+
 # Charger le fichier MIDI
-midi_file = mido.MidiFile("midi/frozen.mid")
+midi_file = mido.MidiFile("midi/potter.mid")
 
 # Charger le modèle
 knn_model = joblib.load("scripts/knn_model.pkl")
@@ -50,8 +53,8 @@ stream = p.open(
     rate=RATE,
     input=True,
     output=True,
-    # input_device_index=1,
-    # output_device_index=1,
+    input_device_index=1,
+    output_device_index=1,
     frames_per_buffer=CHUNK
 )
 audio_frames = []
@@ -123,14 +126,16 @@ try:
                 if pred != last_prediction: 
                     # print("pred:", pred)
                     if pred == 0 and etat != 0:  # Afficher uniquement le premier 0
-                        # print("ON")
+                        print("ON")
                         etat = 0 # etat O = ON
-                        fluid.noteon(0, midi_notes[note_id].note, midi_notes[note_id].velocity)
+                        # fluid.noteon(0, midi_notes[note_id].note, midi_notes[note_id].velocity)
+                        midi_out.send(mido.Message('note_on', note=midi_notes[note_id].note, velocity=midi_notes[note_id].velocity))
 
                     elif pred == 2 and etat != 2:  # Afficher uniquement le premier 2
                         # print("OFF")
                         etat = 2 # etat 2 = OFF
-                        fluid.noteoff(0,  midi_notes[note_id].note)
+                        # fluid.noteoff(0,  midi_notes[note_id].note)
+                        midi_out.send(mido.Message('note_off', note=midi_notes[note_id].note))
                         note_id += 1
 
                     last_prediction = pred
