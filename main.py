@@ -9,6 +9,7 @@ from scipy.signal import butter, lfilter
 import mido # type: ignore
 import fluidsynth # type: ignore
 import scripts.modif_libro.spectral as spectral     
+import sys
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -30,6 +31,11 @@ midi_out = mido.open_output(port_name)
 
 # Charger le fichier MIDI
 midi_file = mido.MidiFile("midi/potter.mid")
+
+# Parametres pour les CC
+rms_max = 200 # Augmenter la valeur pour plus de variation de rms
+CHANNEL_RESPIRO = 0
+CC_rms = 2 # Channel 2: Breath Control
 
 # Charger le modèle
 knn_model = joblib.load("scripts/knn_model.pkl")
@@ -87,7 +93,6 @@ order=1
 normal_cutoff = cutoff / nyquist
 b, a = butter(order, normal_cutoff, btype="low", analog=False)
 
-
 ##########################################################################################
 # PRISE DU FLUX AUDIO EN TEMPS REEL
 etat = None
@@ -102,6 +107,18 @@ try:
 
         # Appliquer le filtre passe-bas
         filtered_audio = lfilter(b, a, audio_data)
+
+        # Calcul RMS
+        rms = np.sqrt(np.mean(filtered_audio.astype(np.float64) ** 2))
+        if rms>rms_max:
+            rms = rms_max
+        midi_val_rms = int((rms/rms_max)*126)
+        # bar_length = int(midi_val_rms*0.2) 
+        # bar = "-" * bar_length
+        # sys.stdout.write(f"\rRMS: {bar}")
+        # sys.stdout.flush()
+
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_rms, value=midi_val_rms))
 
         # Calcul des MFCCs
         block = filtered_audio.astype(np.float32) / 32768.0

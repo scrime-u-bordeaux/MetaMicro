@@ -1,19 +1,25 @@
-import time
-import mido
-import mido
+import numpy as np
+import matplotlib.pyplot as plt 
 
-port_name = "Gestionnaire IAC Bus 1" 
-midi_out = mido.open_output(port_name)
+t = np.linspace(0, 1, 1000)  
+signal = np.sin(2 * np.pi * 5 * t)  
 
-# Jouer une note MIDI (C4 = 60)
-midi_out.send(mido.Message('note_on', note=60, velocity=100))
-time.sleep(1)  # Maintient la note pendant 1 seconde
-midi_out.send(mido.Message('note_off', note=60))
+instant_t = 600  
+window_size = 50
+start = max(0, instant_t - window_size // 2)
+end = min(len(signal), instant_t + window_size // 2)
+rms = np.sqrt(np.mean(signal[start:end] ** 2))
+print(f"Valeur RMS du signal à l'instant {instant_t}: {rms}")
 
-# Modifier la vélocité (dynamique)
-for vel in range(50, 127, 10):
-    midi_out.send(mido.Message('control_change', control=2, value=vel))
-    time.sleep(0.1)
-
-# Fermer la connexion MIDI
-midi_out.close()
+# Affichage du signal
+plt.figure(figsize=(10, 5))
+plt.plot(t, signal, label="Signal")
+plt.axvline(x=t[instant_t], color='r', linestyle='--', label=f"Instant t={instant_t}")
+plt.axhline(y=rms, color='b', linestyle='--', label=f"RMS à t={instant_t}")
+plt.scatter([t[instant_t]], [rms], color='blue', zorder=3, label=f"RMS={rms:.2f}")
+plt.xlabel("Temps (s)")
+plt.ylabel("Amplitude")
+plt.title("Signal et valeur RMS à un instant t")
+plt.legend()
+plt.grid()
+plt.show()
