@@ -30,7 +30,7 @@ port_name = "Gestionnaire IAC Bus 1"
 midi_out = mido.open_output(port_name)
 
 # Charger le fichier MIDI
-midi_file = mido.MidiFile("midi/potter.mid")
+midi_file = mido.MidiFile("midi/frozen.mid")
 
 # Parametres pour les CC
 rms_max = 200 # Augmenter la valeur pour plus de variation de rms
@@ -98,6 +98,9 @@ b, a = butter(order, normal_cutoff, btype="low", analog=False)
 etat = None
 midi_notes = [msg for msg in midi_file if msg.type == 'note_on' and msg.velocity !=0]   
 note_id = -1
+alpha = 0.05
+smoothed_rms = 0
+velocity_base = 100
 
 try:
     print("go")
@@ -110,18 +113,19 @@ try:
 
         # Calcul RMS
         rms = np.sqrt(np.mean(filtered_audio.astype(np.float64) ** 2))
-        if rms>rms_max:
-            rms = rms_max
-        midi_val_rms = int((rms/rms_max)*126)
-        # bar_length = int(midi_val_rms*0.2) 
-        # bar = "-" * bar_length
-        # sys.stdout.write(f"\rRMS: {bar}")
-        # sys.stdout.flush()
+        smoothed_rms = alpha * rms + (1 - alpha) * smoothed_rms
+        if smoothed_rms>rms_max:
+            smoothed_rms = rms_max
+        midi_val_rms = int((smoothed_rms/rms_max)*126)
+        bar_length = int(midi_val_rms*0.2) 
+        bar = "-" * bar_length
+        sys.stdout.write(f"\rRMS: {bar}")
+        sys.stdout.flush()
 
         midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_rms, value=midi_val_rms))
 
         # Calcul des MFCCs
-        block = filtered_audio.astype(np.float32) / 32768.0
+        block = filtered_audio.astype(np.float32) / 32768.0    
         fs = RATE
         start += len(filtered_audio)
         
@@ -137,21 +141,16 @@ try:
         if len(mfcc_buffer) >= batch_size:
             df_mfcc = pd.DataFrame(mfcc_buffer)
             predictions = knn_model.predict(df_mfcc)  
-            # tab_pred.extend(predictions) # Decommenter pour l'affichage
 
             for pred in predictions:
                 if pred != last_prediction: 
                     # print("pred:", pred)
                     if pred == 0 and etat != 0:  # Afficher uniquement le premier 0
-                        # print("ON")
                         etat = 0 # etat O = ON
-                        # fluid.noteon(0, midi_notes[note_id].note, midi_notes[note_id].velocity)
-                        midi_out.send(mido.Message('note_on', note=midi_notes[note_id].note, velocity=midi_notes[note_id].velocity))
+                        midi_out.send(mido.Message('note_on', note=midi_notes[note_id].note, velocity=velocity_base))
 
                     elif pred == 2 and etat != 2:  # Afficher uniquement le premier 2
-                        # print("OFF")
                         etat = 2 # etat 2 = OFF
-                        # fluid.noteoff(0,  midi_notes[note_id].note)
                         midi_out.send(mido.Message('note_off', note=midi_notes[note_id].note))
                         note_id += 1
 
