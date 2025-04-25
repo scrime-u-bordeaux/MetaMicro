@@ -8,6 +8,7 @@ from scipy.signal import butter
 import mido  
 import fluidsynth  
 from enum import Enum
+import scripts.modif_libro.spectral as spectral     
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -226,7 +227,7 @@ try:
             start += len(audio_buffer)
             
             # Calcule des MFCC
-            mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs ,n_mfcc=8,
+            mfcc = spectral.mfcc(y=block.astype(float), sr=fs ,n_mfcc=8,
                                 n_fft=min(512, len(block)), win_length = n_fft, hop_length= win_length // 10,
                                 fmax=fs/2, mel_basis = mel_basis)
             
