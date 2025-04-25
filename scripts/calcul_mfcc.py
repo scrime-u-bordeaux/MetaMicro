@@ -2,6 +2,7 @@ import pandas as pd
 import librosa
 import numpy as np
 import matplotlib.pyplot as plt
+import modif_libro.spectral as spectral   
 
 ##########################################################################################
 ## CHARGEMENTS
@@ -84,7 +85,7 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
 
     # Calculer les MFCCs
     if len(block) == block_size:
-        mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs ,n_mfcc=7, 
+        mfcc = spectral.mfcc(y=block.astype(float), sr=fs ,n_mfcc=7, 
                             n_fft=min(512, len(block)), win_length = n_fft, hop_length= win_length // 10, 
                             fmax=fs/2, mel_basis = mel_basis)
         
