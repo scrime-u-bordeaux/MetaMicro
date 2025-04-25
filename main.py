@@ -20,11 +20,10 @@ import scripts.modif_libro.spectral as spectral
 
 # Initialiser FluidSynth avec une soundfont
 fluid = fluidsynth.Synth()
-fluid.start()
+fluid.start(driver="coreaudio")
 sfid = fluid.sfload("FluidR3_GM/FluidR3_GM.sf2")  
 fluid.program_select(0, sfid, 0, 73)
 
-print("ici222")
 # Charger le fichier MIDI
 midi_file = mido.MidiFile("midi/potter.mid")
 
@@ -53,8 +52,8 @@ stream = p.open(
     rate=RATE,
     input=True,
     # input_device_index=6,
-    # output_device_index=1,
-    frames_per_buffer=2048
+    output_device_index=4,
+    frames_per_buffer=CHUNK
 )
 audio_frames = []
 frames = []
