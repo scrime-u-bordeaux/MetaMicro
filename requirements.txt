@@ -1,4 +1,4 @@
-audioread==3.0.1
+paudioread==3.0.1
 joblib==1.4.2
 librosa==0.11.0
 matplotlib
@@ -9,3 +9,4 @@ pandas
 pyfluidsynth==1.3.4
 scikit-learn
 scipy
+python-rtmidi
