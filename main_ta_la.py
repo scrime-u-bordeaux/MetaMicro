@@ -21,9 +21,10 @@ import scripts.modif_libro.spectral as spectral
 # Initialiser FluidSynth avec une soundfont
 fluid = fluidsynth.Synth()
 fluid.start()
-sfid = fluid.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")  
+sfid = fluid.sfload("FluidR3_GM/FluidR3_GM.sf2")  
 fluid.program_select(0, sfid, 0, 73)
 
+print("ici222")
 # Charger le fichier MIDI
 midi_file = mido.MidiFile("midi/potter.mid")
 
@@ -51,7 +52,9 @@ stream = p.open(
     channels=CHANNELS,
     rate=RATE,
     input=True,
-    frames_per_buffer=CHUNK
+    # input_device_index=6,
+    # output_device_index=1,
+    frames_per_buffer=2048
 )
 audio_frames = []
 frames = []
@@ -211,7 +214,7 @@ try:
     last_action_count = 0
     print("Go")
     while True:
-        data = stream.read(CHUNK)
+        data = stream.read(CHUNK, exception_on_overflow=False)
         audio_data = np.frombuffer(data, dtype=np.int16)
 
         # Ajouter au tampon

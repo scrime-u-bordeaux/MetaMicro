@@ -1,11 +1,11 @@
 audioread==3.0.1
 joblib==1.4.2
 librosa==0.11.0
-matplotlib==3.10.1
+matplotlib
 mido==1.3.3
-numpy==2.1.3
-pandas==2.2.3
+numpy
+pandas
 PyAudio==0.2.14
 pyfluidsynth==1.3.4
-scikit-learn==1.6.1
-scipy==1.15.2
+scikit-learn
+scipy
