@@ -33,6 +33,25 @@ eigenvectors_thresholded = joblib.load("scripts/ta_la_ti_li/eigenvectors_thresho
 mean_X = joblib.load("scripts/ta_la_ti_li/mfcc_mean_ta_la_ti_li_i.pkl")
 std_X = joblib.load("scripts/ta_la_ti_li/mfcc_std_ta_la_ti_li_i.pkl")
 
+# Tronquer mean et std
+block_size = 11
+actions = ['keep', 'drop', 'keep', 'keep', 'drop', 'keep', 'drop', 'keep', 'drop', 'drop', 'keep']
+n_blocks = len(actions)
+rows_to_keep = []
+
+for i, action in enumerate(actions):
+    start = i * block_size
+    end = start + block_size
+    if action == 'keep':
+        rows_to_keep.extend(range(start, end))
+
+# Supprimer aussi les 22 dernières lignes
+rows_to_keep = [i for i in rows_to_keep if i < mean_X.shape[0] - 22]
+
+# Appliquer le filtrage
+mean_X_truncated = mean_X[rows_to_keep]
+std_X_truncated = std_X[rows_to_keep]
+
 # Paramètres audio
 taux_recouvrement = 1
 FORMAT = pyaudio.paInt16 
@@ -230,13 +249,13 @@ try:
             fs = RATE
             start += len(audio_buffer)
             
-            mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs ,n_mfcc=13,
+            mfcc = spectral.mfcc(y=block.astype(float), sr=fs ,n_mfcc=11,
                                 n_fft=min(512, len(block)), win_length = n_fft, hop_length= win_length // 10,
                                 fmax=fs/2, mel_basis = mel_basis)
             
             mfcc_vector = mfcc.flatten()
-            mfcc_centered = mfcc_vector - mean_X
-            mfcc_scaled = mfcc_centered / std_X
+            mfcc_centered = mfcc_vector - mean_X_truncated
+            mfcc_scaled = mfcc_centered / std_X_truncated
 
             # Ajouter à la mémoire tampon
             mfcc_buffer.append(mfcc_scaled)
