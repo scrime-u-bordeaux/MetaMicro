@@ -29,12 +29,12 @@ port_name = "IAC Driver Bus 1"
 midi_out = mido.open_output(port_name)
 
 # Parametres pour les CC    
-rms_max = 500 # Augmenter la valeur pour plus de variation de rms
+rms_max = 250 # Augmenter la valeur pour plus de variation de rms
 CHANNEL_RESPIRO = 0
 CC_rms = 2 # Channel 2: Breath Control
 
 # Charger le fichier MIDI
-midi_file = mido.MidiFile("midi/potter.mid")
+midi_file = mido.MidiFile("midi/GodFather.mid")
 
 # Charger le modele et les vecteurs propres
 knn_model = joblib.load("scripts/knn_model_db_sans_r_opt_main_corrige_avant.pkl")  
@@ -145,17 +145,12 @@ def handle_event(event_type):
         if note_pointer < len(midi_notes):
             note = midi_notes[note_pointer]
             note_stack.append(note)
-            # fluid.noteon(0, note.note, note.velocity)
-            # print(f"ON → note {note.note} (pile = {[n.note for n in note_stack]})")
-            print("note:", note.note)
             midi_out.send(mido.Message('note_on', note = note.note, velocity=note.velocity))
             note_pointer += 1
     elif event_type == "OFF":
         if note_stack:
             note_to_off = note_stack.pop(0)
-            # fluid.noteoff(0, note_to_off.note)
             midi_out.send(mido.Message('note_off', note = note_to_off.note))
-            # print(f"OFF → note {note_to_off.note} (pile = {[n.note for n in note_stack]})")
 
 ##########################################################################################
 # PRISE DU FLUX AUDIO EN TEMPS REEL
@@ -244,9 +239,9 @@ try:
             smoothed_rms = rms_max
         midi_val_rms = int((smoothed_rms/rms_max)*126)
         bar_length = int(midi_val_rms*0.2) 
-        bar = "-" * bar_length
-        sys.stdout.write(f"\rRMS: {bar}")
-        sys.stdout.flush()
+        # bar = "-" * bar_length
+        # sys.stdout.write(f"\rRMS: {bar}")
+        # sys.stdout.flush()
 
         while len(audio_buffer) >= int(CHUNK * taux_recouvrement):
 
