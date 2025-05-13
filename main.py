@@ -10,6 +10,7 @@ import fluidsynth
 from enum import Enum
 import scripts.modif_libro.spectral as spectral     
 import sys
+import wave
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -29,18 +30,37 @@ port_name = "IAC Driver Bus 1"
 midi_out = mido.open_output(port_name)
 
 # Parametres pour les CC    
-rms_max = 250 # Augmenter la valeur pour plus de variation de rms
+rms_max = 100 # Augmenter la valeur pour plus de variation de rms
 CHANNEL_RESPIRO = 0
 CC_rms = 2 # Channel 2: Breath Control
 
 # Charger le fichier MIDI
-midi_file = mido.MidiFile("midi/GodFather.mid")
+midi_file = mido.MidiFile("midi/potter.mid")
 
 # Charger le modele et les vecteurs propres
-knn_model = joblib.load("scripts/knn_model_db_sans_r_opt_main_corrige_avant.pkl")  
-eigenvectors_thresholded = joblib.load("scripts/eigenvectors_thresholded_corrige_avant_tronque.pkl") 
-mean_X = joblib.load("scripts/mfcc_mean.pkl")
-std_X = joblib.load("scripts/mfcc_std.pkl")
+knn_model = joblib.load("scripts/ta_la_ti_li/knn_model_db_sans_r_opt_main_corrige_avant_ta_la_ti_li_i.pkl")  
+eigenvectors_thresholded = joblib.load("scripts/ta_la_ti_li/eigenvectors_thresholded_corrige_avant_tronque_ta_la_ti_li_i.pkl") 
+mean_X = joblib.load("scripts/ta_la_ti_li/mfcc_mean_ta_la_ti_li_i.pkl")
+std_X = joblib.load("scripts/ta_la_ti_li/mfcc_std_ta_la_ti_li_i.pkl")
+
+# Tronquer mean et std
+block_size = 11
+actions = ['keep', 'drop', 'keep', 'keep', 'drop', 'keep', 'drop', 'keep', 'drop', 'drop', 'keep']
+n_blocks = len(actions)
+rows_to_keep = []
+
+for i, action in enumerate(actions):
+    start = i * block_size
+    end = start + block_size
+    if action == 'keep':
+        rows_to_keep.extend(range(start, end))
+
+# Supprimer aussi les 22 dernières lignes
+rows_to_keep = [i for i in rows_to_keep if i < mean_X.shape[0] - 22]
+
+# Appliquer le filtrage
+mean_X_truncated = mean_X[rows_to_keep]
+std_X_truncated = std_X[rows_to_keep]
 
 # Paramètres audio
 filename = "audio/recorded.wav"
@@ -85,7 +105,7 @@ fft_window = librosa.filters.get_window(window, win_length, fftbins=True)
 # Pad the window out to n_fft size
 fft_window = librosa.util.pad_center(fft_window, size=n_fft)
 
-batch_size = 6  # Nombre de blocs MFCC à accumuler avant prédiction
+batch_size = 10 # Nombre de blocs MFCC à accumuler avant prédiction
 mfcc_buffer = []
 tab_pred = []
 events = []
@@ -106,17 +126,20 @@ b, a = butter(order, normal_cutoff, btype="low", analog=False)
 ##########################################################################################
 # AUTOMATE
 # Dictionnaire des transitions
-transitions = {
-    ("1", "l"): "5",  ("1", "a"): "4",  ("1", "t"): "3",  ("1", "s"): "2",
-    ("2", "l"): "5",  ("2", "a"): "4",  ("2", "t"): "3",  ("2", "s"): "10",
-    ("3", "l"): "6",  ("3", "a"): "9",  ("3", "t"): "6",  ("3", "s"): "2",
-    ("4", "l"): "7",  ("4", "a"): "9",  ("4", "t"): "6",  ("4", "s"): "2",
-    ("5", "l"): "5",  ("5", "a"): "4",  ("5", "t"): "3",  ("5", "s"): "10",
-    ("6", "l"): "6",  ("6", "a"): "9",  ("6", "t"): "6",  ("6", "s"): "2",
-    ("7", "l"): "7",  ("7", "a"): "8",  ("7", "t"): "7",  ("7", "s"): "2",
-    ("8", "l"): "7",  ("8", "a"): "9",  ("8", "t"): "9",  ("8", "s"): "2",
-    ("9", "l"): "7",  ("9", "a"): "9",  ("9", "t"): "9",  ("9", "s"): "2",
-    ("10", "l"): "5", ("10", "a"): "4", ("10", "t"): "3", ("10", "s"): "10"
+transitions = { 
+      ("1","l") :"5"  , ("1","a") :"4"  , ("1","t") :"3"  , ("1","s") :"2"  , ("1","i") :"11" ,
+      ("2","l") :"5"  , ("2","a") :"4"  , ("2","t") :"3"  , ("2","s") :"10" , ("2","i") :"11" ,
+      ("3","l") :"6"  , ("3","a") :"9"  , ("3","t") :"6"  , ("3","s") :"2"  , ("3","i") :"13" ,
+      ("4","l") :"7"  , ("4","a") :"9"  , ("4","t") :"6"  , ("4","s") :"2"  , ("4","i") :"12" ,
+      ("5","l") :"5"  , ("5","a") :"4"  , ("5","t") :"3"  , ("5","s") :"10" , ("5","i") :"11" ,
+      ("6","l") :"6"  , ("6","a") :"9"  , ("6","t") :"6"  , ("6","s") :"2"  , ("6","i") :"13" ,
+      ("7","l") :"7"  , ("7","a") :"8"  , ("7","t") :"7"  , ("7","s") :"2"  , ("7","i") :"12" ,
+      ("8","l") :"7"  , ("8","a") :"9"  , ("8","t") :"9"  , ("8","s") :"2"  , ("8","i") :"12" ,
+      ("9","l") :"7"  , ("9","a") :"9"  , ("9","t") :"9"  , ("9","s") :"2"  , ("9","i") :"12" ,
+      ("10","l"):"5"  , ("10","a"):"4"  , ("10","t"):"3"  , ("10","s"):"10" , ("10","i"):"11" ,
+      ("11","l"):"7"  , ("11","a"):"8"  , ("11","t"):"6"  , ("11","s"):"2"  , ("11","i"):"13" ,
+      ("12","l"):"7"  , ("12","a"):"8"  , ("12","t"):"13" , ("12","s"):"2"  , ("12","i"):"13" ,
+      ("13","l"):"7"  , ("13","a"):"8"  , ("13","t"):"13" , ("13","s"):"2"  , ("13","i"):"13" 
 }
 
 # Fonction de transition qui retourne le nouvel état et l'action associée
@@ -126,9 +149,9 @@ def transition(etat, char):
 
     if etat == "2":
         action = "OFF"
-    elif etat in {"3", "4"}:
+    elif etat in {"3", "4", "11"}:
         action = "ON"
-    elif etat == "8":
+    elif etat in {"8", "12"}:
         action = "ON_OFF"
 
     return new_state, action
@@ -171,7 +194,7 @@ class Label(Enum):
     A = 1
     S = 2
     T = 3
-    R = 4
+    I = 4
     VIDE = 5
 
 class Event(Enum):
@@ -179,10 +202,10 @@ class Event(Enum):
     OFF_S = 1
     ON_L = 2
     ON_NOTE_L = 3
-    OFF_R = 4
+    OFF_I = 4
     
 # Chargement du jeu d'entraînement pour obtenir les points 'l'
-label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "r": 4}
+label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "i": 4}
 
 df_ent = pd.read_csv("scripts/X_proj_scaled_avec_labels_corrige_avant.csv")
 
@@ -200,7 +223,7 @@ sigma_factors = {
     "T": (5, 4, 4),
     "S": (5, 5, 5),
     "A": (5, 4, 4),
-    "R": (5, 5, 5),
+    "I": (5, 5, 5),
 }
 
 for label in list(Label)[:-1]:  # On exclut Label.VIDE
@@ -228,6 +251,7 @@ try:
     while True:
         data = stream.read(CHUNK, exception_on_overflow=False)
         audio_data = np.frombuffer(data, dtype=np.int16)
+        audio_frames.append(data) # décommenter pour l'enregistrement
 
         # Ajouter au tampon
         audio_buffer = np.concatenate((audio_buffer, audio_data))
@@ -255,13 +279,13 @@ try:
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_rms, value=midi_val_rms))
             
             # Calcule des MFCC
-            mfcc = spectral.mfcc(y=block.astype(float), sr=fs ,n_mfcc=8,
+            mfcc = spectral.mfcc(y=block.astype(float), sr=fs ,n_mfcc=11,
                                 n_fft=min(512, len(block)), win_length = n_fft, hop_length= win_length // 10,
                                 fmax=fs/2, mel_basis = mel_basis)
             
             mfcc_vector = mfcc.flatten()
-            mfcc_centered = mfcc_vector - mean_X[:-55]
-            mfcc_scaled = mfcc_centered / std_X[:-55] 
+            mfcc_centered = mfcc_vector - mean_X_truncated
+            mfcc_scaled = mfcc_centered / std_X_truncated
 
             # Ajouter à la mémoire tampon
             mfcc_buffer.append(mfcc_scaled)
@@ -411,13 +435,13 @@ p.terminate()
 # plt.title("Signal Audio Capturé")
 # plt.show()
 
-# # Enregistrer l'audio
-# wf = wave.open(filename, "wb")
-# wf.setnchannels(CHANNELS)
-# wf.setsampwidth(p.get_sample_size(FORMAT))
-# wf.setframerate(RATE)
-# wf.writeframes(b"".join(audio_frames))
-# wf.close()
+# Enregistrer l'audio
+wf = wave.open(filename, "wb")
+wf.setnchannels(CHANNELS)
+wf.setsampwidth(p.get_sample_size(FORMAT))
+wf.setframerate(RATE)
+wf.writeframes(b"".join(audio_frames))
+wf.close()
 
 # ########################################################################################
 # # REAFFICHAGE PCA best comb
