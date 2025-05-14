@@ -35,7 +35,7 @@ std_X = joblib.load("scripts/ta_la_ti_li/mfcc_std_ta_la_ti_li_i.pkl")
 
 # Tronquer mean et std
 block_size = 11
-actions = ['keep', 'drop', 'keep', 'keep', 'drop', 'keep', 'drop', 'keep', 'drop', 'drop', 'keep']
+actions = ['keep', 'keep', 'keep', 'keep', 'keep', 'keep', 'drop', 'keep', 'drop', 'drop', 'keep', 'keep', 'drop']
 n_blocks = len(actions)
 rows_to_keep = []
 
@@ -46,7 +46,7 @@ for i, action in enumerate(actions):
         rows_to_keep.extend(range(start, end))
 
 # Supprimer aussi les 22 dernières lignes
-rows_to_keep = [i for i in rows_to_keep if i < mean_X.shape[0] - 22]
+rows_to_keep = [i for i in rows_to_keep if i < mean_X.shape[0]]
 
 # Appliquer le filtrage
 mean_X_truncated = mean_X[rows_to_keep]
