@@ -30,7 +30,7 @@ port_name = "IAC Driver Bus 1"
 midi_out = mido.open_output(port_name)
 
 # Parametres pour les CC    
-rms_max = 100 # Augmenter la valeur pour plus de variation de rms
+rms_max = 150 # Augmenter la valeur pour plus de variation de rms
 CHANNEL_RESPIRO = 0
 CC_rms = 2 # Channel 2: Breath Control
 
