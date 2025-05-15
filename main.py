@@ -11,6 +11,8 @@ from enum import Enum
 import scripts.modif_libro.spectral as spectral     
 import sys
 import wave
+from sklearn.neighbors import BallTree   
+import matplotlib.pyplot as plt
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -110,6 +112,8 @@ mfcc_buffer = []
 tab_pred = []
 events = []
 proba_list = []
+majority_labels_seq = []
+recouvrement = 2
 
 # Stocker la dernière prédiction pour comparaison
 last_prediction = None
@@ -207,7 +211,7 @@ class Event(Enum):
 # Chargement du jeu d'entraînement pour obtenir les points 'l'
 label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "i": 4}
 
-df_ent = pd.read_csv("scripts/X_proj_scaled_avec_labels_corrige_avant.csv")
+df_ent = pd.read_csv("scripts/ta_la_ti_li/X_proj_scaled_avec_labels_corrige_avant_ta_la_ti_li_i.csv")
 
 df_ent["label"] = df_ent["label"].map(label_mapping)
 
@@ -242,6 +246,11 @@ for label in list(Label)[:-1]:  # On exclut Label.VIDE
         "axis2": factors[2] * np.std(X_class[:, 2])
     }
 
+# Initialisation de l'arbre de recherche
+tree = BallTree(X_ent, metric='euclidean')
+radius = 1.0
+k = 2
+
 # Initialisation de l'état de l'automate
 etat = "1"
 try:
@@ -268,7 +277,8 @@ try:
         # sys.stdout.flush()
 
         while len(audio_buffer) >= int(CHUNK * taux_recouvrement):
-
+            
+            frames.extend(audio_data) # Decommenter pour l'affichage
             # Parametres pour le calcul des MFCC
             all_audio_buffer = audio_buffer[:int(CHUNK * taux_recouvrement)] 
             audio_buffer = audio_buffer[CHUNK:] 
@@ -289,32 +299,56 @@ try:
 
             # Ajouter à la mémoire tampon
             mfcc_buffer.append(mfcc_scaled)
+            time_values.append(start / fs) # decommenter pour l'affichage
             
             # Prédire quand on a accumulé assez de blocs
             if len(mfcc_buffer) >= batch_size:
-
-                # Projeter les MFCCs sur les vecteurs propres
                 df_mfcc = pd.DataFrame(mfcc_buffer)
                 df_mfcc_pca = df_mfcc @ eigenvectors_thresholded
 
-                # Predire avec le modèle KNN
-                predictions = knn_model.predict(df_mfcc_pca)
-                predictions_indices = predictions 
-                        
-                # Calcule les labels majoritaires
-                majority_label = int(np.bincount(predictions_indices).argmax())
-                predictions[:] = majority_label
+                # Recherche des voisinsu niquement dans le rayon
+                indices_radius, distances_radius = tree.query_radius(df_mfcc_pca, r=radius, return_distance=True, sort_results=True)
 
-                # Calcul des etats et actions
-                etat, action = transition(etat, Label(majority_label).name.lower())
-                if action == "ON_OFF":
-                    handle_event("ON")
-                    handle_event("OFF")
-                elif action:
-                    handle_event(action)
+                predictions = []
+                neighbors_per_point = []
+                
+                for dists, idxs in zip(distances_radius, indices_radius):
+                    if len(idxs) == 0:
+                        predictions.append(Label.VIDE.value)
+                        neighbors_per_point.append(0)
+                    else:
+                        # Prendre les k plus proches dans le rayon
+                        top_idxs = idxs[:k]  
+                        labels = y_ent[top_idxs]
+                        pred = np.bincount(labels).argmax() # renvoie le label majoritaire
+                        predictions.extend(labels.tolist())
+                        neighbors_per_point.append(len(top_idxs))
+
+                predictions = np.array(predictions)
+                label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "i": 4}
+                predictions_indices = predictions 
+
+                mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction
+                time_values.extend([start / fs] * len(predictions)) # Decommenter pour correction
+
+                # On associe au VIDE les labels trop loin du centre
+                df_mfcc_pca_np = df_mfcc_pca.values if hasattr(df_mfcc_pca, 'values') else df_mfcc_pca
+                        
+                # Maintenant on peut appeler np.bincount en toute sécurité
+                majority_label = int(np.bincount(predictions_indices).argmax())
+
+                if majority_label != Label.VIDE.value:
+                    predictions[:] = majority_label
+                    majority_labels_seq.append(majority_label)
+                    etat, action = transition(etat, Label(majority_label).name.lower())
+                    if action == "ON_OFF":
+                        handle_event("ON")
+                        handle_event("OFF")
+                    elif action:
+                        handle_event(action)
     
-                # Réinitialiser les buffers
-                mfcc_buffer = []
+                # Réinitialiser les buffers avec fenetre glissante
+                mfcc_buffer = mfcc_buffer[recouvrement:]
 
 except KeyboardInterrupt:
     print("\nArrêt de l'enregistrement.")
@@ -406,34 +440,34 @@ p.terminate()
 # stream.close()
 # p.terminate()
 
-# ##########################################################################################
-# # AFFICHAGE COULEUR
-# # Générer l'axe des temps
-# time = np.linspace(0, len(frames) / fs, num=len(frames))
+##########################################################################################
+# AFFICHAGE COULEUR
+# Générer l'axe des temps
+time = np.linspace(0, len(frames) / fs, num=len(frames))
 
-# # Dictionnaire de correspondance entre les prédictions et les couleurs
-# # colors = {"l": "blue", "a": "green", "s": "red", "t": "orange", "r": "purple"} # Si on utilise la correction apres
-# colors = {0: "blue", 1: "green", 2: "red", 3: "orange", 4: "purple"} # Si on utilise la correction avant
+# Dictionnaire de correspondance entre les prédictions et les couleurs
+# colors = {"l": "blue", "a": "green", "s": "red", "t": "orange", "r": "purple"} # Si on utilise la correction apres
+colors = {0: "blue", 1: "green", 2: "red", 3: "orange", 4: "purple"} # Si on utilise la correction avant
 
-# # Création des timestamps cohérents avec le nombre de prédictions
-# pas = CHUNK * batch_size / fs  
-# time_values = np.arange(len(tab_pred)) * pas
+# Création des timestamps cohérents avec le nombre de prédictions
+pas = CHUNK * batch_size / fs  
+time_values = np.arange(len(tab_pred)) * pas
 
-# # Création du data aFrame principal avec labels
-# df_predictions = pd.DataFrame({
-#     "Time (s)": time_values,
-#     "Label": tab_pred
-# })
-# plt.figure(figsize=(10, 4))
+# Création du data aFrame principal avec labels
+df_predictions = pd.DataFrame({
+    "Time (s)": time_values,
+    "Label": tab_pred
+})
+plt.figure(figsize=(10, 4))
 
-# # Tracer le signal par segments en fonction des prédictions
-# for i, (start, pred) in enumerate(zip(range(0, len(frames), CHUNK), tab_pred)):
-#     plt.plot(time[start:start+CHUNK], frames[start:start+CHUNK], color=colors[pred])
+# Tracer le signal par segments en fonction des prédictions
+for i, (start, pred) in enumerate(zip(range(0, len(frames), CHUNK), majority_labels_seq)):
+    plt.plot(time[start:start+CHUNK], frames[start:start+CHUNK], color=colors[pred])
 
-# plt.xlabel("Temps (s)")
-# plt.ylabel("Amplitude")
-# plt.title("Signal Audio Capturé")
-# plt.show()
+plt.xlabel("Temps (s)")
+plt.ylabel("Amplitude")
+plt.title("Signal Audio Capturé")
+plt.show()
 
 # Enregistrer l'audio
 wf = wave.open(filename, "wb")
