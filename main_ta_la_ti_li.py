@@ -8,7 +8,8 @@ from scipy.signal import butter
 import mido  
 import fluidsynth  
 from enum import Enum
-import scripts.modif_libro.spectral as spectral     
+import scripts.modif_libro.spectral as spectral  
+from sklearn.neighbors import BallTree   
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -97,6 +98,7 @@ mfcc_buffer = []
 tab_pred = []
 events = []
 proba_list = []
+recouvrement = 2
 
 # Stocker la dernière prédiction pour comparaison
 last_prediction = None
@@ -227,6 +229,11 @@ for label in list(Label)[:-1]:  # On exclut Label.VIDE
         "axis2": factors[2] * np.std(X_class[:, 2])
     }
 
+# Initialisation de l'arbre de recherche
+tree = BallTree(X_ent, metric='euclidean')
+radius = 1.0
+k = 2
+
 # Initialisation de l'état de l'automate
 etat = "1"
 try:
@@ -264,8 +271,26 @@ try:
             if len(mfcc_buffer) >= batch_size:
                 df_mfcc = pd.DataFrame(mfcc_buffer)
                 df_mfcc_pca = df_mfcc @ eigenvectors_thresholded
-                predictions = knn_model.predict(df_mfcc_pca)
 
+                # Recherche des voisinsu niquement dans le rayon
+                indices_radius, distances_radius = tree.query_radius(df_mfcc_pca, r=radius, return_distance=True, sort_results=True)
+
+                predictions = []
+                neighbors_per_point = []
+                
+                for dists, idxs in zip(distances_radius, indices_radius):
+                    if len(idxs) == 0:
+                        predictions.append(Label.VIDE.value)
+                        neighbors_per_point.append(0)
+                    else:
+                        # Prendre les k plus proches dans le rayon
+                        top_idxs = idxs[:k]  
+                        labels = y_ent[top_idxs]
+                        pred = np.bincount(labels).argmax() # renvoie le label majoritaire
+                        predictions.extend(labels.tolist())
+                        neighbors_per_point.append(len(top_idxs))
+
+                predictions = np.array(predictions)
                 label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "i": 4}
                 predictions_indices = predictions 
 
@@ -275,18 +300,17 @@ try:
                 # Maintenant on peut appeler np.bincount en toute sécurité
                 majority_label = int(np.bincount(predictions_indices).argmax())
 
-                # Remplacer toutes les prédictions par la classe majoritaire
-                predictions[:] = majority_label
-
-                etat, action = transition(etat, Label(majority_label).name.lower())
-                if action == "ON_OFF":
-                    handle_event("ON")
-                    handle_event("OFF")
-                elif action:
-                    handle_event(action)
+                if majority_label != Label.VIDE.value:
+                    predictions[:] = majority_label
+                    etat, action = transition(etat, Label(majority_label).name.lower())
+                    if action == "ON_OFF":
+                        handle_event("ON")
+                        handle_event("OFF")
+                    elif action:
+                        handle_event(action)
     
-                # Réinitialiser les buffers
-                mfcc_buffer = []
+                # Réinitialiser les buffers avec fenetre glissante
+                mfcc_buffer = mfcc_buffer[recouvrement:]
 
 except KeyboardInterrupt:
     print("\nArrêt de l'enregistrement.")
