@@ -13,6 +13,11 @@ import sys
 import wave
 from sklearn.neighbors import BallTree   
 import matplotlib.pyplot as plt
+import threading
+from collections import Counter
+import csv
+import plotly.graph_objects as go
+import matplotlib
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -35,6 +40,7 @@ midi_out = mido.open_output(port_name)
 rms_max = 150 # Augmenter la valeur pour plus de variation de rms
 CHANNEL_RESPIRO = 0
 CC_rms = 2 # Channel 2: Breath Control
+CC_i = 9 # Channel 9: changement de timbre
 
 # Charger le fichier MIDI
 midi_file = mido.MidiFile("midi/potter.mid")
@@ -75,8 +81,20 @@ CHUNK = int((RATE * 0.005) // taux_recouvrement)
 # Initialisation de PyAudio
 p = pyaudio.PyAudio()
 
+# Initialisation des thread
+lock = threading.Lock()
+
 ##########################################################################################
 # PARALETRES POUR PRISE DU FLUX AUDIO EN TEMPS REEL
+# Def de la fonction callback
+latest_audio = np.zeros(CHUNK, dtype=np.int16)
+
+def callback(in_data, frame_count, time_info, status):
+    global latest_audio
+    # with lock:
+    latest_audio = np.frombuffer(in_data, dtype=np.int16)
+    return (in_data, pyaudio.paContinue)
+
 # Ouverture du flux audio
 stream = p.open(
     format=FORMAT,
@@ -86,6 +104,7 @@ stream = p.open(
     # input_device_index=6,
     output_device_index=4,
     frames_per_buffer=CHUNK,
+    # stream_callback=callback
 )
 audio_frames = []
 frames = []
@@ -113,7 +132,7 @@ tab_pred = []
 events = []
 proba_list = []
 majority_labels_seq = []
-recouvrement = 2
+recouvrement = 5
 
 # Stocker la dernière prédiction pour comparaison
 last_prediction = None
@@ -153,11 +172,23 @@ def transition(etat, char):
 
     if etat == "2":
         action = "OFF"
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))       # timbre i
     elif etat in {"3", "4", "11"}:
         action = "ON"
+        if etat in {"11"}:
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=127)) # timbre i
+        else:
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
     elif etat in {"8", "12"}:
         action = "ON_OFF"
-
+        if etat == "12":
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=127)) # timbre i
+        else:
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
+    elif etat == "13":
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=127))     # timbre i
+    elif etat == "9":
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))       # timbre i
     return new_state, action
 
 # NOTE_ON AND NOTE_OFF
@@ -199,7 +230,7 @@ class Label(Enum):
     S = 2
     T = 3
     I = 4
-    VIDE = 5
+    VIDE = 99
 
 class Event(Enum):
     ON_NOTE_T = 0
@@ -248,8 +279,13 @@ for label in list(Label)[:-1]:  # On exclut Label.VIDE
 
 # Initialisation de l'arbre de recherche
 tree = BallTree(X_ent, metric='euclidean')
-radius = 1.0
+radius = 1.7
 k = 2
+
+# Importer les données de la séquence
+log_file = open("predictions_log.csv", mode="w", newline="")
+csv_writer = csv.writer(log_file)
+csv_writer.writerow(["timestamp (s)", "predictions_labels", "label_counts", "majority_label"])
 
 # Initialisation de l'état de l'automate
 etat = "1"
@@ -259,7 +295,11 @@ try:
     print("Go")
     while True:
         data = stream.read(CHUNK, exception_on_overflow=False)
+        # data = stream.read(CHUNK)
         audio_data = np.frombuffer(data, dtype=np.int16)
+
+        # with lock:
+        # audio_data = latest_audio.copy()
         audio_frames.append(data) # décommenter pour l'enregistrement
 
         # Ajouter au tampon
@@ -278,13 +318,13 @@ try:
 
         while len(audio_buffer) >= int(CHUNK * taux_recouvrement):
             
+            start += len(audio_buffer)
             frames.extend(audio_data) # Decommenter pour l'affichage
             # Parametres pour le calcul des MFCC
             all_audio_buffer = audio_buffer[:int(CHUNK * taux_recouvrement)] 
             audio_buffer = audio_buffer[CHUNK:] 
             block = all_audio_buffer.astype(np.float32) / 32768.0
             fs = RATE
-            start += len(audio_buffer)
 
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_rms, value=midi_val_rms))
             
@@ -315,12 +355,14 @@ try:
                 for dists, idxs in zip(distances_radius, indices_radius):
                     if len(idxs) == 0:
                         predictions.append(Label.VIDE.value)
+                        tab_pred.append(Label.VIDE.value)
                         neighbors_per_point.append(0)
                     else:
                         # Prendre les k plus proches dans le rayon
                         top_idxs = idxs[:k]  
                         labels = y_ent[top_idxs]
                         pred = np.bincount(labels).argmax() # renvoie le label majoritaire
+                        tab_pred.append(pred) # Decommenter pour l'affichage
                         predictions.extend(labels.tolist())
                         neighbors_per_point.append(len(top_idxs))
 
@@ -328,8 +370,12 @@ try:
                 label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "i": 4}
                 predictions_indices = predictions 
 
-                mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction
-                time_values.extend([start / fs] * len(predictions)) # Decommenter pour correction
+                # print
+                label_mapping_reverse = {0: "l", 1: "a", 2: "s", 3: "t", 4: "i", 99: "vide"}
+                predictions_labels = [label_mapping_reverse[idx] for idx in predictions_indices]
+                label_counts = Counter(predictions_labels)
+                # print(predictions_labels)
+                # print("Occurrences:", label_counts)
 
                 # On associe au VIDE les labels trop loin du centre
                 df_mfcc_pca_np = df_mfcc_pca.values if hasattr(df_mfcc_pca, 'values') else df_mfcc_pca
@@ -338,21 +384,35 @@ try:
                 majority_label = int(np.bincount(predictions_indices).argmax())
 
                 if majority_label != Label.VIDE.value:
+                    mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction
+                    time_values.extend([start / fs] * len(predictions)) # Decommenter pour correction
+                    
                     predictions[:] = majority_label
                     majority_labels_seq.append(majority_label)
+
+                    # Enregistrement dans fichier secondaire
+                    timestamp = (start / fs)  # temps en secondes
+                    label_name = Label(majority_label).name.lower()
+                    csv_writer.writerow([
+                        f"{timestamp:.2f}",
+                        str(predictions_labels),
+                        str(dict(label_counts)),
+                        label_name
+                    ])
+                    log_file.flush()
+
                     etat, action = transition(etat, Label(majority_label).name.lower())
                     if action == "ON_OFF":
                         handle_event("ON")
                         handle_event("OFF")
                     elif action:
-                        handle_event(action)
+                        handle_event(action) 
     
                 # Réinitialiser les buffers avec fenetre glissante
                 mfcc_buffer = mfcc_buffer[recouvrement:]
 
 except KeyboardInterrupt:
     print("\nArrêt de l'enregistrement.")
-
     
 # Fermeture du flux et de PyAudio
 stream.stop_stream()
@@ -477,139 +537,139 @@ wf.setframerate(RATE)
 wf.writeframes(b"".join(audio_frames))
 wf.close()
 
-# ########################################################################################
-# # REAFFICHAGE PCA best comb
-# # Calcul PCA 2D features
-# df_loaded = pd.read_csv("scripts/X_proj_scaled_avec_labels_corrige_avant.csv") 
-# # df_loaded = pd.read_csv("script/X_balanced_sans_r_opti_main_corrige.csv") 
+########################################################################################
+# REAFFICHAGE PCA best comb
+# Calcul PCA 2D features
+df_loaded = pd.read_csv("scripts/ta_la_ti_li/X_proj_scaled_avec_labels_corrige_avant_ta_la_ti_li_i.csv")
+# df_loaded = pd.read_csv("script/X_balanced_sans_r_opti_main_corrige.csv") 
 
-# X_selected_pca = df_loaded.iloc[:, :-1].values
+X_selected_pca = df_loaded.iloc[:, :-1].values
 
-# # Mapping couleur → label (inversé du dico original)
-# block_labels_balanced = df_loaded["label"].values
+# Mapping couleur → label (inversé du dico original)
+block_labels_balanced = df_loaded["label"].values
 
-# # Couleurs
-# colors = {"l": "blue", "a": "green", "s": "red", "t": "orange", "r": "purple"}
-# class_colors = [colors[l] for l in block_labels_balanced]
+# Couleurs
+colors = {"l": "blue", "a": "green", "s": "red", "t": "orange", "i": "purple"}
+class_colors = [colors[l] for l in block_labels_balanced]
 
-# # Prédictions en temps réel
-# predictions_array = np.array(tab_pred)
-# pred_l_mask = predictions_array == "l"
+# Prédictions en temps réel
+predictions_array = np.array(tab_pred)
+pred_l_mask = predictions_array == "l"
 
-# mfcc_matrix = np.array(mfcc_features)
-# mfcc_pca_temp_reel = mfcc_matrix @ eigenvectors_thresholded
+mfcc_matrix = np.array(mfcc_features)
+mfcc_pca_temp_reel = mfcc_matrix @ eigenvectors_thresholded
  
-# ##########################################################################################
-# # FIGURE 1 — AFFICHAGE DU SEUIL ET SUPPERPOSITION DE LA CLASSE 'l'
-# # 1. Filtrer les points de la classe 'l' (entraînement)
-# mask_l = [color == 'blue' for color in class_colors]  # 'blue' correspond à la classe 'l'
-# X_l_pca = X_selected_pca[mask_l]
+##########################################################################################
+# FIGURE 1 — AFFICHAGE DU SEUIL ET SUPPERPOSITION DE LA CLASSE 'l'
+# 1. Filtrer les points de la classe 'l' (entraînement)
+mask_l = [color == 'blue' for color in class_colors]  # 'blue' correspond à la classe 'l'
+X_l_pca = X_selected_pca[mask_l]
 
-# # 2. Calculer centroïde + seuil
-# center_l = np.mean(X_l_pca, axis=0)
-# distances = np.linalg.norm(X_l_pca - center_l, axis=1)
-# # threshold = 2 * np.std(distances)
+# 2. Calculer centroïde + seuil
+center_l = np.mean(X_l_pca, axis=0)
+distances = np.linalg.norm(X_l_pca - center_l, axis=1)
+# threshold = 2 * np.std(distances)
 
-# # 3. Masque prédictions 'l'
-# pred_l_mask = predictions_array == "l"
+# 3. Masque prédictions 'l'
+pred_l_mask = predictions_array == "l"
 
-# # === FIGURE FUSIONNÉE ===
-# fig = plt.figure(figsize=(10, 7))
-# ax = fig.add_subplot(111, projection='3d')
+# === FIGURE FUSIONNÉE ===
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection='3d')
 
-# # Nuage d'entraînement
-# ax.scatter(
-#     X_selected_pca[:, 0],
-#     X_selected_pca[:, 1],
-#     X_selected_pca[:, 2],
-#     c=class_colors,
-#     alpha=0.15,
-#     s=10
-# )
+# Nuage d'entraînement
+ax.scatter(
+    X_selected_pca[:, 0],
+    X_selected_pca[:, 1],
+    X_selected_pca[:, 2],
+    c=class_colors,
+    alpha=0.15,
+    s=10
+)
 
-# # Prédictions 'l'
-# ax.scatter(
-#     mfcc_pca_temp_reel[pred_l_mask, 0],
-#     mfcc_pca_temp_reel[pred_l_mask, 1],
-#     mfcc_pca_temp_reel[pred_l_mask, 2],
-#     c="deeppink",
-#     edgecolors="k",
-#     s=50,
-#     label="Prédits 'l'"
-# )
+# Prédictions 'l'
+ax.scatter(
+    mfcc_pca_temp_reel[pred_l_mask, 0],
+    mfcc_pca_temp_reel[pred_l_mask, 1],
+    mfcc_pca_temp_reel[pred_l_mask, 2],
+    c="deeppink",
+    edgecolors="k",
+    s=50,
+    label="Prédits 'l'"
+)
 
-# # Sphères pour chaque centroïde
-# u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
-# for label, center in centroids.items():
-#     r0 = thresholds[label]["axis0"]
-#     r1 = thresholds[label]["axis1"]
-#     r2 = thresholds[label]["axis2"]
+# Sphères pour chaque centroïde
+u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+for label, center in centroids.items():
+    r0 = thresholds[label]["axis0"]
+    r1 = thresholds[label]["axis1"]
+    r2 = thresholds[label]["axis2"]
     
-#     x = center[0] + r0 * np.cos(u) * np.sin(v)
-#     y = center[1] + r1 * np.sin(u) * np.sin(v)
-#     z = center[2] + r2 * np.cos(v)
+    x = center[0] + r0 * np.cos(u) * np.sin(v)
+    y = center[1] + r1 * np.sin(u) * np.sin(v)
+    z = center[2] + r2 * np.cos(v)
 
-#     ax.plot_surface(x, y, z, color='red', alpha=0.12)
-#     ax.scatter(center[0], center[1], center[2], c='black', marker='x', s=100, label=f"Centroïde {label}")
+    ax.plot_surface(x, y, z, color='red', alpha=0.12)
+    ax.scatter(center[0], center[1], center[2], c='black', marker='x', s=100, label=f"Centroïde {label}")
 
-# ax.set_xlabel("PCA 1")
-# ax.set_ylabel("PCA 2")
-# ax.set_zlabel("PCA 3")
-# ax.set_title("Projection PCA 3D — Centroïdes + sphères seuil")
+ax.set_xlabel("PCA 1")
+ax.set_ylabel("PCA 2")
+ax.set_zlabel("PCA 3")
+ax.set_title("Projection PCA 3D — Centroïdes + sphères seuil")
 
-# plt.tight_layout()
-# plt.show()
+plt.tight_layout()
+plt.show()
 
-# ##########################################################################################
-# # FIGURE 2 — PCA D'ENTRAÎNEMENT + PRÉDICTIONS TEMPS RÉEL SUPERPOSÉES
+##########################################################################################
+# FIGURE 2 — PCA D'ENTRAÎNEMENT + PRÉDICTIONS TEMPS RÉEL SUPERPOSÉES
 
-# # 1. S'assurer que les prédictions sont bien sous forme d'entiers
-# predictions_array = np.array(tab_pred)
+# 1. S'assurer que les prédictions sont bien sous forme d'entiers
+predictions_array = np.array(tab_pred)
 
-# # 2. Masque des prédictions 'l'
-# pred_l_mask = predictions_array == Label.L.value  # donc == 0
+# 2. Masque des prédictions 'l'
+pred_l_mask = predictions_array == Label.L.value  # donc == 0
 
-# # 3. Normaliser les temps (uniquement si on a des points 'l')
-# if np.any(pred_l_mask):
-#     time_norm = (time_values - np.min(time_values)) / (np.max(time_values) - np.min(time_values))
-#     cmap = matplotlib.colormaps.get_cmap("Blues")
-#     colors_l = [f"rgba({int(255*r)},{int(255*g)},{int(255*b)},{a:.2f})"
-#                 for r, g, b, a in cmap(time_norm[pred_l_mask])]
-# else:
-#     colors_l = []
+# 3. Normaliser les temps (uniquement si on a des points 'l')
+if np.any(pred_l_mask):
+    time_norm = (time_values - np.min(time_values)) / (np.max(time_values) - np.min(time_values))
+    cmap = matplotlib.colormaps.get_cmap("Blues")
+    colors_l = [f"rgba({int(255*r)},{int(255*g)},{int(255*b)},{a:.2f})"
+                for r, g, b, a in cmap(time_norm[pred_l_mask])]
+else:
+    colors_l = []
 
-# fig3d = go.Figure()
+fig3d = go.Figure()
 
-# # 4. Nuage d'entraînement (PCA de base)
-# fig3d.add_trace(go.Scatter3d(
-#     x=X_selected_pca[:, 0],
-#     y=X_selected_pca[:, 1],
-#     z=X_selected_pca[:, 2],
-#     mode='markers',
-#     marker=dict(size=3, color=class_colors, opacity=0.12),
-#     name="Base PCA"
-# ))
+# 4. Nuage d'entraînement (PCA de base)
+fig3d.add_trace(go.Scatter3d(
+    x=X_selected_pca[:, 0],
+    y=X_selected_pca[:, 1],
+    z=X_selected_pca[:, 2],
+    mode='markers',
+    marker=dict(size=3, color=class_colors, opacity=0.12),
+    name="Base PCA"
+))
 
-# # 5. Prédictions temps réel autres que 'l'
-# for int_label, color in {1: "green", 2: "red", 3: "orange", 4: "purple"}.items():
-#     mask = predictions_array == int_label
-#     fig3d.add_trace(go.Scatter3d(
-#         x=mfcc_pca_temp_reel[mask, 0],
-#         y=mfcc_pca_temp_reel[mask, 1],
-#         z=mfcc_pca_temp_reel[mask, 2],
-#         mode='markers',
-#         marker=dict(size=6, color=color, line=dict(color='black', width=0.5)),
-#         name=f"Prédits '{Label(int_label).name.lower()}'",
-#         text=[f"t = {t:.2f}s" for t in (np.array(time_values)[mask] * 0.1)],
-#         hoverinfo='text'
-#     ))
-
+# 5. Prédictions temps réel autres que 'l'
+for int_label, color in  {0: "blue", 1: "green", 2: "red", 3: "orange", 4: "purple"}.items():
+    mask = predictions_array == int_label
+    print(mask)
+    fig3d.add_trace(go.Scatter3d(
+        x=mfcc_pca_temp_reel[mask ,0],
+        y=mfcc_pca_temp_reel[mask ,1],
+        z=mfcc_pca_temp_reel[mask ,2],
+        mode='markers',
+        marker=dict(size=6, color=color, line=dict(color='black', width=0.5)),
+        name=f"Prédits '{Label(int_label).name.lower()}'",
+        text=[f"t = {t:.2f}s" for t in (np.array(time_values)[mask] * 0.1)],
+        hoverinfo='text'
+    ))
 # # 6. Prédictions 'l' avec dégradé de bleu
 # if np.any(pred_l_mask):
 #     fig3d.add_trace(go.Scatter3d(
-#         x=mfcc_pca_temp_reel[pred_l_mask, 0],
-#         y=mfcc_pca_temp_reel[pred_l_mask, 1],
-#         z=mfcc_pca_temp_reel[pred_l_mask, 2],
+#         x=mfcc_pca_temp_reel[mask ,0],
+#         y=mfcc_pca_temp_reel[mask ,1],
+#         z=mfcc_pca_temp_reel[mask ,2],
 #         mode='markers',
 #         marker=dict(
 #             size=6,
@@ -621,51 +681,51 @@ wf.close()
 #         hoverinfo='text'
 #     ))
 
-# # 7. Sphères 3D + centroïdes
-# u = np.linspace(0, 2*np.pi, 30)
-# v = np.linspace(0, np.pi, 30)
-# u, v = np.meshgrid(u, v)
+# 7. Sphères 3D + centroïdes
+u = np.linspace(0, 2*np.pi, 30)
+v = np.linspace(0, np.pi, 30)
+u, v = np.meshgrid(u, v)
 
-# for label, center in centroids.items():
-#     r0 = thresholds[label]["axis0"]
-#     r1 = thresholds[label]["axis1"]
-#     r2 = thresholds[label]["axis2"]
+for label, center in centroids.items():
+    r0 = thresholds[label]["axis0"]
+    r1 = thresholds[label]["axis1"]
+    r2 = thresholds[label]["axis2"]
 
-#     xs = center[0] + r0 * np.cos(u) * np.sin(v)
-#     ys = center[1] + r1 * np.sin(u) * np.sin(v)
-#     zs = center[2] + r2 * np.cos(v)
+    xs = center[0] + r0 * np.cos(u) * np.sin(v)
+    ys = center[1] + r1 * np.sin(u) * np.sin(v)
+    zs = center[2] + r2 * np.cos(v)
 
-#     color_label = label.lower()
-#     fig3d.add_trace(go.Surface(
-#         x=xs, y=ys, z=zs,
-#         opacity=0.12,
-#         colorscale=[[0, colors[color_label]], [1, colors[color_label]]],
-#         showscale=False,
-#         name=f"Sphère seuil '{label}'"
-#     ))
+    color_label = label.lower()
+    fig3d.add_trace(go.Surface(
+        x=xs, y=ys, z=zs,
+        opacity=0.12,
+        colorscale=[[0, colors[color_label]], [1, colors[color_label]]],
+        showscale=False,
+        name=f"Sphère seuil '{label}'"
+    ))
 
-#     fig3d.add_trace(go.Scatter3d(
-#         x=[center[0]],
-#         y=[center[1]],
-#         z=[center[2]],
-#         mode="markers+text",
-#         marker=dict(size=10, color="black", symbol="x"),
-#         text=[f"Centroïde '{label}'"],
-#         textposition="top center",
-#         name=f"Centroïde '{label}'"
-#     ))
+    fig3d.add_trace(go.Scatter3d(
+        x=[center[0]],
+        y=[center[1]],
+        z=[center[2]],
+        mode="markers+text",
+        marker=dict(size=10, color="black", symbol="x"),
+        text=[f"Centroïde '{label}'"],
+        textposition="top center",
+        name=f"Centroïde '{label}'"
+    ))
 
-# # 8. Layout final
-# fig3d.update_layout(
-#     title="PCA 3D — Prédictions temps réel + sphères seuils et centroïdes",
-#     scene=dict(
-#         xaxis=dict(title="PCA 1"),
-#         yaxis=dict(title="PCA 2"),
-#         zaxis=dict(title="PCA 3"),
-#         aspectmode="cube"
-#     ),
-#     legend_title="Légende",
-#     margin=dict(l=0, r=0, b=0, t=50)
-# )
+# 8. Layout final
+fig3d.update_layout(
+    title="PCA 3D — Prédictions temps réel + sphères seuils et centroïdes",
+    scene=dict(
+        xaxis=dict(title="PCA 1"),
+        yaxis=dict(title="PCA 2"),
+        zaxis=dict(title="PCA 3"),
+        aspectmode="cube"
+    ),
+    legend_title="Légende",
+    margin=dict(l=0, r=0, b=0, t=50)
+)
 
-# fig3d.show()
+fig3d.show()
