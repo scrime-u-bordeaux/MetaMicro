@@ -19,10 +19,51 @@ import csv
 import plotly.graph_objects as go
 import matplotlib
 
+from time import time
+from impro import generate_note_oracle, generate_note_markov
+import factor_oracle as fo
+from create_symbols import extract_features, create_symbole
+import mido
+import fluidsynth
+from markov import transition_matrix
+
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
 # pactl set-default-source alsa_input.usb-Focusrite_Scarlett_4i4_USB_D89YRE90C17918-00.multichannel-input
 # pactl set-default-sink alsa_output.pci-0000_00_1f.3.analog-stereo
+
+##########################################################################################
+# FONCTION POUR IMPRO
+
+# Parametres itinialisation
+global previous_state
+previous_state = 0
+default_velocity = 64
+
+midFile = '../metaImpro/corpus/o clair de la lune.mid'
+midFeatures = extract_features(midFile)
+midSymbols = create_symbole(midFeatures)
+previous_pitch = midSymbols[0][0] if midSymbols else 60  # par défaut 60 (do4) si la liste est vide
+
+lenSymbols = len(midSymbols)
+transitions_oracle, supply = fo.oracle(sequence=midSymbols)
+transitions_markov, notes = transition_matrix(midSymbols)
+
+def generate_note_event( mode, previous_state, previous_pitch, duration_eff, transitions_oracle, supply, midSymbols, transitions_markov, notes, gap=0, velocity=100 ):  
+    
+    if mode == 'oracle':
+        new_state, note, links = generate_note_oracle(
+            previous_state, duration_eff,
+            transitions_oracle, supply, midSymbols,
+            gap=gap, p=0.8, contour=False
+        )
+        return new_state, note
+    elif mode == 'markov':
+        next_pitch, next_prob, top_probs = generate_note_markov(
+            previous_pitch, transitions_markov, notes, gap=gap, contour=False
+        )
+        note = (next_pitch, duration_eff, velocity)
+        return next_pitch, note
 
 ##########################################################################################
 # INITIALISATION ET CHARGEMENT DES DONNEES
@@ -35,7 +76,7 @@ midi_out = mido.open_output(port_name)
 port2 = mido.open_output("IAC Driver Bus 1 Bus 2")
 
 # Parametres pour les CC    
-rms_max = 30 # Augmenter la valeur pour plus de variation de rms
+rms_max = 70 # Augmenter la valeur pour plus de variation de rms
 CHANNEL_RESPIRO = 0
 CC_rms = 2 # Channel 2: Breath Control
 CC_i = 9   # Channel 9: changement de timbre i
@@ -47,10 +88,10 @@ CC_u = 14  # Channel 14: changment de timbre u
 midi_file = mido.MidiFile("midi/Etude 1.mid")
 
 # Charger le modele et les vecteurs propres
-knn_model = joblib.load("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/knn_model_db_sans_r_opt_main_corrige_avant_u_ta_la_ti_li_i_n_avec_slope_zcr.pkl")  # peux faire avec lu
-eigenvectors_thresholded = joblib.load("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/eigenvectors_thresholded_corrige_avant_u_ta_la_ti_li_i_n_avec_slope_zcr.pkl") 
-mean_X = joblib.load("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/mfcc_mean_u_ta_la_ti_li_i_n_avec_slope_zcr.pkl")
-std_X = joblib.load("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/mfcc_std_u_ta_la_ti_li_i_n_avec_slope_zcr.pkl")
+knn_model = joblib.load("scripts/u_ta_la_ti_li_i_n_p_avec_slope_zcr/knn_model_db_sans_r_opt_main_corrige_avant_u_ta_la_ti_li_i_n_p_avec_slope_zcr.pkl")  
+eigenvectors_thresholded = joblib.load("scripts/u_ta_la_ti_li_i_n_p_avec_slope_zcr/eigenvectors_thresholded_corrige_avant_u_ta_la_ti_li_i_n_p_avec_slope_zcr.pkl") 
+mean_X = joblib.load("scripts/u_ta_la_ti_li_i_n_p_avec_slope_zcr/mfcc_mean_u_ta_la_ti_li_i_n_p_avec_slope_zcr.pkl")
+std_X = joblib.load("scripts/u_ta_la_ti_li_i_n_p_avec_slope_zcr/mfcc_std_u_ta_la_ti_li_i_n_p_avec_slope_zcr.pkl")
 
 # Tronquer mean et std
 block_size = 11
@@ -271,7 +312,6 @@ def handle_event(event_type):
 # PRISE DU FLUX AUDIO EN TEMPS REEL
 prev_event = None
 midi_notes = [msg for msg in midi_file if msg.type == 'note_on' and msg.velocity !=0]  # Extraire les notes MIDI
-
 note_id = -1
 majority_label_prec = []
 majority_label_no_vide = []
@@ -283,7 +323,7 @@ smoothed_rms = 0
 velocity_base = 100
 
 class Label(Enum):
-    L = 0
+    P = 0
     A = 1
     S = 2
     T = 3
@@ -300,9 +340,9 @@ class Event(Enum):
     OFF_I = 4
     
 # Chargement du jeu d'entraînement pour obtenir les points 'l'
-label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "i": 4, "u": 5, "n": 6}
+label_mapping = {"p": 0, "a": 1, "s": 2, "t": 3, "i": 4, "u": 5, "n": 6}
 
-df_ent = pd.read_csv("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/X_proj_scaled_avec_labels_corrige_avant_u_ta_la_ti_li_i_n_avec_slope_zcr.csv")
+df_ent = pd.read_csv("scripts/u_ta_la_ti_li_i_n_p_avec_slope_zcr/X_proj_scaled_avec_labels_corrige_avant_u_ta_la_ti_li_i_n_p_avec_slope_zcr.csv")
 
 df_ent["label"] = df_ent["label"].map(label_mapping)
 
@@ -314,7 +354,7 @@ thresholds = {}
 
 # Coefficients spécifiques par label
 sigma_factors = {
-    "L": (5, 5, 5),
+    "P": (5, 5, 5),
     "T": (5, 4, 4),
     "S": (5, 5, 5),
     "A": (5, 4, 4),
@@ -392,7 +432,7 @@ try:
             
             # Envoie de la valeur rms pour les breath control
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_rms, value=midi_val_rms))
-
+            
             # Normalisation de l'amplitude du signal
             if rms > 0:
                 audio_data = audio_data / rms  # normalise le signal par sa propre puissance RMS
@@ -455,11 +495,11 @@ try:
                         neighbors_per_point.append(len(top_idxs))
 
                 predictions = np.array(predictions)
-                label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "i": 4, "u": 5, "n": 6}
+                label_mapping = {"p": 0, "a": 1, "s": 2, "t": 3, "i": 4, "u": 5, "n": 6}
                 predictions_indices = predictions 
 
                 # print
-                label_mapping_reverse = {0: "l", 1: "a", 2: "s", 3: "t", 4: "i", 5: "u", 6: "n", 99: "vide"}
+                label_mapping_reverse = {0: "p", 1: "a", 2: "s", 3: "t", 4: "i", 5: "u", 6: "n", 99: "vide"}
                 predictions_labels = [label_mapping_reverse[idx] for idx in predictions_indices]
                 label_counts = Counter(predictions_labels)
                 # print(predictions_labels)
@@ -533,11 +573,31 @@ try:
                     log_file.flush()
 
                     etat, action = transition(etat, Label(majority_label).name.lower())
-                    if action == "ON_OFF":
-                        handle_event("ON")
-                        handle_event("OFF")
-                    elif action:
-                        handle_event(action) 
+                    if action in {"ON", "ON_OFF"}:
+                        previous_state, note = generate_note_event(
+                            mode="markov",  # ou "oracle"
+                            previous_state=previous_state,
+                            previous_pitch=previous_pitch,
+                            duration_eff=0.2,  # ou un calcul plus précis basé sur rythme
+                            transitions_oracle=transitions_oracle,
+                            supply=supply,
+                            midSymbols=midSymbols,
+                            transitions_markov=transitions_markov,
+                            notes=notes,
+                            gap=0,  # éventuellement calculable à partir des labels
+                            velocity=midi_val_rms
+                        )
+                        previous_pitch = note[0]
+                        note_stack.append(note)
+                        print(note[2])
+                        midi_out.send(mido.Message('note_on', note=note[0], velocity=midi_val_rms))
+                        port2.send(mido.Message('note_on', note=note[0], velocity=midi_val_rms))
+
+                    if action in {"OFF", "ON_OFF"}:
+                        if note_stack:
+                            note = note_stack.pop(0)
+                            midi_out.send(mido.Message('note_off', note=note[0]))
+                            port2.send(mido.Message('note_off', note=note[0]))
     
                 # Réinitialiser les buffers avec fenetre glissante
                 mfcc_buffer = mfcc_buffer[recouvrement:]
@@ -596,7 +656,7 @@ p.terminate()
 #                 mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction
 #                 time_values.extend([start / fs] * len(predictions)) # Decommenter pour correction
 
-#                 label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "n": 4}
+#                 label_mapping = {"p": 0, "a": 1, "s": 2, "t": 3, "n": 4}
 #                 # predictions_indices = np.array([label_mapping[p] for p in predictions]) # si on utilise la correction apres
 #                 predictions_indices = predictions # si on utilise la correction avant 
 
@@ -637,7 +697,7 @@ p.terminate()
 time = np.linspace(0, len(frames) / fs, num=len(frames))
 
 # Dictionnaire de correspondance entre les prédictions et les couleurs
-# colors = {"l": "blue", "a": "green", "s": "red", "t": "orange", "n": "purple"} # Si on utilise la correction apres
+# colors = {"p": "blue", "a": "green", "s": "red", "t": "orange", "n": "purple"} # Si on utilise la correction apres
 colors = {0: "blue", 1: "green", 2: "red", 3: "orange", 4: "purple", 5: "cyan"} # Si on utilise la correction avant
 
 # Création des timestamps cohérents avec le nombre de prédictions
@@ -671,7 +731,7 @@ wf.close()
 ########################################################################################
 # REAFFICHAGE PCA best comb
 # Calcul PCA 2D features
-df_loaded = pd.read_csv("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/X_proj_scaled_avec_labels_corrige_avant_u_ta_la_ti_li_i_n_avec_slope_zcr.csv")
+df_loaded = pd.read_csv("scripts/u_ta_la_ti_li_i_n_p_avec_slope_zcr/X_proj_scaled_avec_labels_corrige_avant_u_ta_la_ti_li_i_n_p_avec_slope_zcr.csv")
 # df_loaded = pd.read_csv("script/X_balanced_sans_r_opti_main_corrige.csv") 
 
 X_selected_pca = df_loaded.iloc[:, :-1].values
@@ -680,12 +740,12 @@ X_selected_pca = df_loaded.iloc[:, :-1].values
 block_labels_balanced = df_loaded["label"].values
 
 # Couleurs
-colors = {"l": "blue", "a": "green", "s": "red", "t": "orange", "i": "purple", "u": "cyan", "n": "brown"}
+colors = {"p": "blue", "a": "green", "s": "red", "t": "orange", "i": "purple", "u": "cyan", "n": "brown"}
 class_colors = [colors[l] for l in block_labels_balanced]
 
 # Prédictions en temps réel
 predictions_array = np.array(tab_pred)
-pred_l_mask = predictions_array == "l"
+pred_l_mask = predictions_array == "p"
 
 mfcc_matrix = np.array(mfcc_features)
 mfcc_pca_temp_reel = mfcc_matrix @ eigenvectors_thresholded
@@ -702,7 +762,7 @@ mfcc_pca_temp_reel = mfcc_matrix @ eigenvectors_thresholded
 # # threshold = 2 * np.std(distances)
 
 # # 3. Masque prédictions 'l'
-# pred_l_mask = predictions_array == "l"
+# pred_l_mask = predictions_array == "p"
 
 # # === FIGURE FUSIONNÉE ===
 # fig = plt.figure(figsize=(10, 7))
@@ -783,7 +843,7 @@ fig3d.add_trace(go.Scatter3d(
 
 # 5. Prédictions temps réel autres que 'l'
 for int_label, color in  {0: "blue", 1: "green", 2: "red", 3: "orange", 4: "purple", 5: "cyan", 6: "brown", 99: "black"}.items():
-    if int_label == 5 or int_label == 6:
+    if int_label == 0 or int_label == 3:
         mask = predictions_array == int_label
         fig3d.add_trace(go.Scatter3d(
             x=mfcc_pca_temp_reel[mask ,0],

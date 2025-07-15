@@ -18,6 +18,7 @@ from collections import Counter
 import csv
 import plotly.graph_objects as go
 import matplotlib
+import time
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -35,7 +36,7 @@ midi_out = mido.open_output(port_name)
 port2 = mido.open_output("IAC Driver Bus 1 Bus 2")
 
 # Parametres pour les CC    
-rms_max = 30 # Augmenter la valeur pour plus de variation de rms
+rms_max = 555 # Augmenter la valeur pour plus de variation de rms
 CHANNEL_RESPIRO = 0
 CC_rms = 2 # Channel 2: Breath Control
 CC_i = 9   # Channel 9: changement de timbre i
@@ -47,10 +48,10 @@ CC_u = 14  # Channel 14: changment de timbre u
 midi_file = mido.MidiFile("midi/Etude 1.mid")
 
 # Charger le modele et les vecteurs propres
-knn_model = joblib.load("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/knn_model_db_sans_r_opt_main_corrige_avant_u_ta_la_ti_li_i_n_avec_slope_zcr.pkl")  # peux faire avec lu
-eigenvectors_thresholded = joblib.load("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/eigenvectors_thresholded_corrige_avant_u_ta_la_ti_li_i_n_avec_slope_zcr.pkl") 
-mean_X = joblib.load("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/mfcc_mean_u_ta_la_ti_li_i_n_avec_slope_zcr.pkl")
-std_X = joblib.load("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/mfcc_std_u_ta_la_ti_li_i_n_avec_slope_zcr.pkl")
+knn_model = joblib.load("scripts/juliette/knn_model_marqueurs.pkl")  
+eigenvectors_thresholded = joblib.load("scripts/juliette/eigenvectors_marqueurs.pkl") 
+mean_X = joblib.load("scripts/juliette/mfcc_mean_marqueurs.pkl")
+std_X = joblib.load("scripts/juliette/mfcc_std_marqueurs.pkl")
 
 # Tronquer mean et std
 block_size = 11
@@ -151,43 +152,6 @@ order=1
 normal_cutoff = cutoff / nyquist
 b, a = butter(order, normal_cutoff, btype="low", analog=False)
 
-##########################################################################################
-# AUTOMATE
-# # Dictionnaire des transitions
-
-# transition avec i sans le l avant
-# transitions = { 
-#       ("1","l") :"5"  , ("1","a") :"4"  , ("1","t") :"3"  , ("1","s") :"2"  , ("1","i") :"11" ,
-#       ("2","l") :"5"  , ("2","a") :"4"  , ("2","t") :"3"  , ("2","s") :"10" , ("2","i") :"11" ,
-#       ("3","l") :"6"  , ("3","a") :"9"  , ("3","t") :"6"  , ("3","s") :"2"  , ("3","i") :"13" ,
-#       ("4","l") :"7"  , ("4","a") :"9"  , ("4","t") :"6"  , ("4","s") :"2"  , ("4","i") :"12" ,
-#       ("5","l") :"5"  , ("5","a") :"4"  , ("5","t") :"3"  , ("5","s") :"10" , ("5","i") :"5"  , # ("5","i") :"11" 
-#       ("6","l") :"6"  , ("6","a") :"9"  , ("6","t") :"6"  , ("6","s") :"2"  , ("6","i") :"13" , 
-#       ("7","l") :"7"  , ("7","a") :"8"  , ("7","t") :"7"  , ("7","s") :"2"  , ("7","i") :"7"  , # ("7","i") :"12"
-#       ("8","l") :"7"  , ("8","a") :"9"  , ("8","t") :"9"  , ("8","s") :"2"  , ("8","i") :"12" ,
-#       ("9","l") :"7"  , ("9","a") :"9"  , ("9","t") :"9"  , ("9","s") :"2"  , ("9","i") :"12" ,
-#       ("10","l"):"5"  , ("10","a"):"4"  , ("10","t"):"3"  , ("10","s"):"10" , ("10","i"):"11" ,
-#       ("11","l"):"7"  , ("11","a"):"8"  , ("11","t"):"6"  , ("11","s"):"2"  , ("11","i"):"13" ,
-#       ("12","l"):"7"  , ("12","a"):"8"  , ("12","t"):"13" , ("12","s"):"2"  , ("12","i"):"13" ,
-#       ("13","l"):"7"  , ("13","a"):"8"  , ("13","t"):"13" , ("13","s"):"2"  , ("13","i"):"13" 
-# }
-
-# # transition avec t sans avoir forcement le s avant
-# transitions = { 
-#       ("1","l") :"5"  , ("1","a") :"4"  , ("1","t") :"3"  , ("1","s") :"2"  , ("1","i") :"11" ,
-#       ("2","l") :"5"  , ("2","a") :"4"  , ("2","t") :"3"  , ("2","s") :"10" , ("2","i") :"11" ,
-#       ("3","l") :"6"  , ("3","a") :"9"  , ("3","t") :"6"  , ("3","s") :"2"  , ("3","i") :"13" ,
-#       ("4","l") :"7"  , ("4","a") :"9"  , ("4","t") :"6"  , ("4","s") :"2"  , ("4","i") :"12" , # ("4","t") :"6" 
-#       ("5","l") :"5"  , ("5","a") :"4"  , ("5","t") :"3"  , ("5","s") :"10" , ("5","i") :"11" , 
-#       ("6","l") :"6"  , ("6","a") :"9"  , ("6","t") :"6"  , ("6","s") :"2"  , ("6","i") :"13" , 
-#       ("7","l") :"7"  , ("7","a") :"8"  , ("7","t") :"7"  , ("7","s") :"2"  , ("7","i") :"12" ,
-#       ("8","l") :"7"  , ("8","a") :"9"  , ("8","t") :"9"  , ("8","s") :"2"  , ("8","i") :"12" , # ("8","t") :"9"
-#       ("9","l") :"7"  , ("9","a") :"9"  , ("9","t") :"3"  , ("9","s") :"2"  , ("9","i") :"12" , # ("9","t") :"9"  
-#       ("10","l"):"5"  , ("10","a"):"4"  , ("10","t"):"3"  , ("10","s"):"10" , ("10","i"):"11" ,
-#       ("11","l"):"7"  , ("11","a"):"8"  , ("11","t"):"6"  , ("11","s"):"2"  , ("11","i"):"13" , # ("11","t"):"6"
-#       ("12","l"):"7"  , ("12","a"):"8"  , ("12","t"):"13" , ("12","s"):"2"  , ("12","i"):"13" ,  # ("12","t"):"13"
-#       ("13","l"):"7"  , ("13","a"):"8"  , ("13","t"):"13" , ("13","s"):"2"  , ("13","i"):"13"    # ("13","t"):"13"
-# }
 
 # transition normale comme sur la feuille
 transitions = { 
@@ -280,6 +244,7 @@ audio_buffer = np.array([], dtype=np.int16)
 # Parametres pour respiro
 alpha = 0.05
 smoothed_rms = 0
+smoothed_midi_val_rms = 0
 velocity_base = 100
 
 class Label(Enum):
@@ -302,7 +267,7 @@ class Event(Enum):
 # Chargement du jeu d'entraînement pour obtenir les points 'l'
 label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "i": 4, "u": 5, "n": 6}
 
-df_ent = pd.read_csv("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/X_proj_scaled_avec_labels_corrige_avant_u_ta_la_ti_li_i_n_avec_slope_zcr.csv")
+df_ent = pd.read_csv("scripts/juliette/X_proj_scaled_marqueurs.csv")
 
 df_ent["label"] = df_ent["label"].map(label_mapping)
 
@@ -343,12 +308,12 @@ for label in list(Label)[:-1]:  # On exclut Label.VIDE
 tree = BallTree(X_ent, metric='euclidean')
 # radius = 1.7 # avec i
 # radius = 10  # avec aoui
-radius = 10  # avec  aouin
+radius = 15  # avec  aouin
 # radius = 8.5 # avec aouim
 
 # k = 4 # avec aoui
 # k = 9 # avec aouin
-k = 7  #; avec auinm
+k = 10  #; avec auinm
 
 # Creation du seuil majorité
 seuil_majorite = int(k * batch_size / 2)
@@ -358,6 +323,62 @@ print(seuil_majorite)
 log_file = open("predictions_log.csv", mode="w", newline="")
 csv_writer = csv.writer(log_file)
 csv_writer.writerow(["timestamp (ms)", "predictions_labels", "label_counts", "majority_label", "rms", "midi_val_rms"])
+
+def color_code_basic(dist, min_dist, max_dist):
+    ratio = (dist - min_dist) / (max_dist - min_dist + 1e-6)
+    if ratio < 0.33:
+        return "\033[92m"  # Vert clair
+    elif ratio < 0.66:
+        return "\033[93m"  # Jaune
+    else:
+        return "\033[91m"  # Rouge clair
+    
+##########################################################################################
+# PARAMETRE POUR L'AFFICHAGE GRAPHIQUE
+# Mode interactif
+plt.ion()
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.set_xlim(-1, 1)
+ax.set_ylim(-1.5, 1.5)
+ax.axis('off')  # Pas d'axes visibles
+
+# Positions horizontales : gauche et droite
+positions = [
+    (-0.8, 0.5),    # Gauche
+    (0.8, 0.5),     # Droite
+]
+
+letters = ["A", "I", "T", "S"]
+text_objects = []
+# Ajouter une zone de texte en bas pour l'historique
+history_text = ax.text(
+    0, -1.3,  # position sous les lettres
+    "",       # texte vide au départ
+    fontsize=20,
+    ha='center',
+    va='center'
+)
+
+# Créer deux emplacements pour les lettres
+for pos in positions:
+    txt = ax.text(
+        pos[0], pos[1],
+        "",              # Vide au départ
+        fontsize=50,
+        ha='center',
+        va='center'
+    )
+    text_objects.append(txt)
+
+# Créer l’aiguille (ligne)
+# Elle partira de (0, -1) et bougera son extrémité
+needle, = ax.plot([0, 0], [-1, -0.5], lw=3, color='red')
+
+plt.show()
+
+cycle_duration = 2
+last_update_time = 0
 
 # Initialisation de l'état de l'automate
 etat = "1"
@@ -379,14 +400,25 @@ try:
 
         # Calcul RMS
         rms = np.sqrt(np.mean(audio_data.astype(np.float64) ** 2))
-        smoothed_rms = alpha * rms + (1 - alpha) * smoothed_rms
-        if smoothed_rms>rms_max:
-            smoothed_rms = rms_max
-        midi_val_rms = int((smoothed_rms/rms_max)*126)
-        bar_length = int(midi_val_rms*0.2) 
-        # bar = "-" * bar_length
-        # sys.stdout.write(f"\rRMS: {bar}")
-        # sys.stdout.flush()
+        if rms > rms_max:
+            rms_max = rms
+            print(rms_max)
+        rms_clip = (rms - 0) / (rms_max - 0)
+        rms_sqrt = np.tanh(1.6*rms_clip)
+        midi_val_rms = rms_sqrt * 126
+        smoothed_midi_val_rms = alpha * midi_val_rms + (1 - alpha) * smoothed_midi_val_rms
+        midi_val_rms = int(smoothed_midi_val_rms)
+        rms_max = 555
+
+        # rms = np.sqrt(np.mean(audio_data.astype(np.float64) ** 2))
+        # smoothed_rms = alpha * rms + (1 - alpha) * smoothed_rms
+        # if smoothed_rms>rms_max:
+        #     smoothed_rms = rms_max
+        # midi_val_rms = int((smoothed_rms/rms_max)*126)
+        # bar_length = int(midi_val_rms*0.2) 
+        # # bar = "-" * bar_length
+        # # sys.stdout.write(f"\rRMS: {bar}")
+        # # sys.stdout.flush()
 
         while len(audio_buffer) >= int(CHUNK * taux_recouvrement):
             
@@ -449,7 +481,84 @@ try:
                         # Prendre les k plus proches dans le rayon
                         top_idxs = idxs[:k]  
                         labels = y_ent[top_idxs]
-                        pred = np.bincount(labels).argmax() # renvoie le label majoritaire
+                        pred = np.bincount(labels).argmax() # renvoie le label majoritaire                     
+                        label_mapping_reverse = {0: "l", 1: "a", 2: "s", 3: "t", 4: "i", 5: "u", 6: "n", 99: "vide"}
+                        predictions_labels = label_mapping_reverse[pred]
+                        if predictions_labels in {"a", "i"}:
+                            # Moyenne du batch projeté                       
+                            batch_center = df_mfcc_pca.mean(axis=0)
+                            # Calcul des distances aux centroïdes
+                            distances_to_centroids = {                            
+                                label: np.linalg.norm(batch_center - centroids[label])
+                                for label in ["A", "I", "T", "S", "U", "N"]                        
+                                }
+
+                            min_dist = min(distances_to_centroids.values())
+                            max_dist = max(distances_to_centroids.values())
+
+                            # # Affichage avec couleurs de base
+                            # for lbl in ["A", "I", "T", "S"]:
+                            #     dist = distances_to_centroids[lbl]
+                            #     color = color_code_basic(dist, min_dist, max_dist)
+                            #     # print(f"{color}{lbl} = {dist:.2f}\033[0m")
+                            #     print("\r" + "".join(f"{color_code_basic(distances_to_centroids[lbl], min_dist, max_dist)}{lbl}\033[0m " for lbl in ["A", "I", "T", "S"]), end="", flush=True)
+
+                            # Trier les lettres par distance croissante
+                            sorted_labels = sorted(distances_to_centroids.items(), key=lambda x: x[1])
+
+                            # Ne garder que les 2 plus proches
+                            closest_labels = sorted_labels[:2]
+
+                            # Extraire uniquement les lettres
+                            displayed_letters = [lbl for lbl, _ in closest_labels]
+
+                            # Affichage des 2 lettres les plus proches avec leurs couleurs
+                            # print(
+                            #     "\r" + "".join(
+                            #         f"{color_code_basic(dist, min_dist, max_dist)}{lbl}\033[0m "
+                            #         for lbl, dist in closest_labels
+                            #     ),
+                            #     end="",
+                            #     flush=True
+                            # )
+                            # Mettre à jour l’affichage des lettres
+                            for i, txt in enumerate(text_objects):
+                                txt.set_text(displayed_letters[i])
+
+                            # Si assez de temps s’est écoulé depuis la dernière mise à jour
+                            current_time = time.time()
+                            if current_time - last_update_time >= 0.01:
+                                elapsed = (current_time % cycle_duration)
+
+                                # Récupérer les deux lettres les plus proches
+                                (label1, dist1), (label2, dist2) = closest_labels
+
+                                # plus dist1 est petit, plus weight est proche de 1
+                                weight = dist2 / (dist1 + dist2 + 1e-6)  # Normalisation pour éviter division par 0
+                                weight = np.clip(weight, 0, 1)  # S’assurer que weight est entre 0 et 1
+
+                                # Récupérer les positions des lettres
+                                pos1 = positions[0]  # gauche
+                                pos2 = positions[1]  # droite
+
+                                # Calculer la position pondérée de l’aiguille
+                                x_tip = pos1[0] * weight + pos2[0] * (1 - weight)
+                                y_tip = pos1[1] * weight + pos2[1] * (1 - weight)
+
+                                base_x = 0
+                                base_y = -1.2
+
+                                # Mettre à jour la ligne (aiguille)
+                                needle.set_data([base_x, x_tip], [base_y, y_tip])
+
+                                # Mettre à jour les lettres
+                                for i, txt in enumerate(text_objects):
+                                    txt.set_text(displayed_letters[i])
+
+                                plt.draw()
+                                plt.pause(0.001)  #  pour rester fluide
+                                last_update_time = current_time
+
                         tab_pred.append(pred) # Decommenter pour l'affichage
                         predictions.extend(labels.tolist())
                         neighbors_per_point.append(len(top_idxs))
@@ -458,12 +567,9 @@ try:
                 label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "i": 4, "u": 5, "n": 6}
                 predictions_indices = predictions 
 
-                # print
                 label_mapping_reverse = {0: "l", 1: "a", 2: "s", 3: "t", 4: "i", 5: "u", 6: "n", 99: "vide"}
                 predictions_labels = [label_mapping_reverse[idx] for idx in predictions_indices]
                 label_counts = Counter(predictions_labels)
-                # print(predictions_labels)
-                # print("Occurrences:", label_counts)
 
                 # Supprimer les 'vide' du comptage
                 non_vide_counts = {label: count for label, count in label_counts.items() if label != "vide"}
@@ -486,13 +592,6 @@ try:
                 # On associe au VIDE les labels trop loin du centre
                 df_mfcc_pca_np = df_mfcc_pca.values if hasattr(df_mfcc_pca, 'values') else df_mfcc_pca
 
-                # PARAMETRE A CHOISIR
-                # # Si le "t" n'est pas précédé d'un "s" ou d'un "t" alors c'est un "i"
-                # if majority_label == Label.T.value:
-                #     if majority_label_no_vide != Label.S.value and majority_label_no_vide != Label.T.value and majority_label_no_vide != Label.VIDE.value:
-                #         # print("-------------------------------------- avant:", majority_label, majority_label_no_vide)
-                #         majority_label = Label.I.value
-
                 # Ajouter le label courant dans l'historique (en gardant seulement les 4 derniers)
                 majority_label_prec.append(majority_label)
                 if len(majority_label_prec) > 5:
@@ -501,6 +600,23 @@ try:
                 # Ajouter le dernier label majoritaire qui n'est pas vide
                 if majority_label != Label.VIDE.value:
                     majority_label_no_vide = majority_label
+
+                    if majority_label != Label.S.value:
+                        # Ajouter la lettre détectée à l’historique si elle est différente de la précédente
+                        label_char = Label(majority_label).name.lower()
+                        if not majority_labels_seq or majority_labels_seq[-1] != majority_label:
+                            majority_labels_seq.append(majority_label)
+                            # Mettre à jour l’historique des lettres (éviter doublons consécutifs)
+                            if not 'historique_lettres' in globals():
+                                historique_lettres = []
+                            if not historique_lettres or historique_lettres[-1] != label_char:
+                                historique_lettres.append(label_char)
+                                if len(historique_lettres) > 10:
+                                    historique_lettres.pop(0)
+
+                        # Afficher l’historique sous forme de texte
+                        history_text.set_text("".join(historique_lettres))
+                        print(history_text)
 
                 # Vérification : 4 précédents + celui actuel = 5 't' → remplacer par 'i'
                 if (
@@ -550,313 +666,3 @@ stream.stop_stream()
 stream.close()
 p.terminate()
 
-# try:
-#     sequence_labels = []
-#     last_action_count = 0
-#     print("Go")
-#     while True:
-#         data = stream.read(CHUNK, exception_on_overflow=False)
-#         audio_data = np.frombuffer(data, dtype=np.int16)
-#         audio_frames.append(data) # Decommenter pour l'affichage
-
-#         # Ajouter au tampon
-#         audio_buffer = np.concatenate((audio_buffer, audio_data))
-
-#         while len(audio_buffer) >= int(CHUNK * taux_recouvrement):
-
-#             frames.extend(audio_data) # Decommenter pour l'affichage
-
-#             # Calcul des MFCCs
-#             all_audio_buffer = audio_buffer[:int(CHUNK * taux_recouvrement)] 
-#             audio_buffer = audio_buffer[CHUNK:] 
-#             block = all_audio_buffer.astype(np.float32) / 32768.0
-#             fs = RATE
-#             start += len(audio_buffer)
-            
-#             mfcc = spectral.mfcc(y=block.astype(float), sr=fs ,n_mfcc=8,
-#                                 n_fft=min(512, len(block)), win_length = n_fft, hop_length= win_length // 10,
-#                                 fmax=fs/2, mel_basis = mel_basis)
-            
-#             # mfcc_vector = np.concatenate(selected_blocks)
-#             mfcc_vector = mfcc.flatten()
-#             # print(mean_X , std_X)
-#             mfcc_centered = mfcc_vector - mean_X[:-55]
-#             mfcc_scaled = mfcc_centered / std_X[:-55] 
-
-#             # Ajouter à la mémoire tampon
-#             mfcc_buffer.append(mfcc_scaled)
-#             time_values.append(start / fs) # decommenter pour l'affichage
-
-#             # Prédire quand on a accumulé assez de blocs
-#             if len(mfcc_buffer) >= batch_size:
-#                 df_mfcc = pd.DataFrame(mfcc_buffer)
-#                 df_mfcc_pca = df_mfcc @ eigenvectors_thresholded
-#                 predictions = knn_model.predict(df_mfcc_pca)
-
-#                 mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction
-#                 time_values.extend([start / fs] * len(predictions)) # Decommenter pour correction
-
-#                 label_mapping = {"l": 0, "a": 1, "s": 2, "t": 3, "n": 4}
-#                 # predictions_indices = np.array([label_mapping[p] for p in predictions]) # si on utilise la correction apres
-#                 predictions_indices = predictions # si on utilise la correction avant 
-
-#                 # On associe au VIDE les labels trop loin du centre
-#                 df_mfcc_pca_np = df_mfcc_pca.values if hasattr(df_mfcc_pca, 'values') else df_mfcc_pca
-                        
-#                 # Maintenant on peut appeler np.bincount en toute sécurité
-#                 majority_label = int(np.bincount(predictions_indices).argmax())
-
-#                 # Remplacer toutes les prédictions par la classe majoritaire
-#                 tab_pred.extend(predictions) # Decommenter pour l'affichage
-#                 predictions[:] = majority_label
-#                 # print(f"majority_label : {Label(majority_label).name.lower()}")
-
-#                 etat, action = transition(etat, Label(majority_label).name.lower())
-#                 if action == "ON_OFF":
-#                     handle_event("ON")
-#                     handle_event("OFF")
-#                 elif action:
-#                     handle_event(action)
-    
-#                 # Réinitialiser les buffers
-#                 # mfcc_buffer = mfcc_buffer[-buffer_recouvrement:]
-#                 mfcc_buffer = []
-
-# except KeyboardInterrupt:
-#     print("\nArrêt de l'enregistrement.")
-
-    
-# # Fermeture du flux et de PyAudio
-# stream.stop_stream()
-# stream.close()
-# p.terminate()
-
-##########################################################################################
-# AFFICHAGE COULEUR
-# Générer l'axe des temps
-time = np.linspace(0, len(frames) / fs, num=len(frames))
-
-# Dictionnaire de correspondance entre les prédictions et les couleurs
-# colors = {"l": "blue", "a": "green", "s": "red", "t": "orange", "n": "purple"} # Si on utilise la correction apres
-colors = {0: "blue", 1: "green", 2: "red", 3: "orange", 4: "purple", 5: "cyan"} # Si on utilise la correction avant
-
-# Création des timestamps cohérents avec le nombre de prédictions
-pas = CHUNK * batch_size / fs  
-time_values = np.arange(len(tab_pred)) * pas
-
-# Création du data aFrame principal avec labels
-df_predictions = pd.DataFrame({
-    "Time (s)": time_values,
-    "Label": tab_pred
-})
-plt.figure(figsize=(10, 4))
-
-# # Tracer le signal par segments en fonction des prédictions
-# for i, (start, pred) in enumerate(zip(range(0, len(frames), CHUNK), majority_labels_seq)):
-#     plt.plot(time[start:start+CHUNK], frames[start:start+CHUNK], color=colors[pred])
-
-# plt.xlabel("Temps (s)")
-# plt.ylabel("Amplitude")
-# plt.title("Signal Audio Capturé")
-# plt.show()
-
-# Enregistrer l'audio
-wf = wave.open(filename, "wb")
-wf.setnchannels(CHANNELS)
-wf.setsampwidth(p.get_sample_size(FORMAT))
-wf.setframerate(RATE)
-wf.writeframes(b"".join(audio_frames))
-wf.close()
-
-########################################################################################
-# REAFFICHAGE PCA best comb
-# Calcul PCA 2D features
-df_loaded = pd.read_csv("scripts/u_ta_la_ti_li_i_n_avec_slope_zcr/X_proj_scaled_avec_labels_corrige_avant_u_ta_la_ti_li_i_n_avec_slope_zcr.csv")
-# df_loaded = pd.read_csv("script/X_balanced_sans_r_opti_main_corrige.csv") 
-
-X_selected_pca = df_loaded.iloc[:, :-1].values
-
-# Mapping couleur → label (inversé du dico original)
-block_labels_balanced = df_loaded["label"].values
-
-# Couleurs
-colors = {"l": "blue", "a": "green", "s": "red", "t": "orange", "i": "purple", "u": "cyan", "n": "brown"}
-class_colors = [colors[l] for l in block_labels_balanced]
-
-# Prédictions en temps réel
-predictions_array = np.array(tab_pred)
-pred_l_mask = predictions_array == "l"
-
-mfcc_matrix = np.array(mfcc_features)
-mfcc_pca_temp_reel = mfcc_matrix @ eigenvectors_thresholded
- 
-# ##########################################################################################
-# # FIGURE 1 — AFFICHAGE DU SEUIL ET SUPPERPOSITION DE LA CLASSE 'l'
-# # 1. Filtrer les points de la classe 'l' (entraînement)
-# mask_l = [color == 'blue' for color in class_colors]  # 'blue' correspond à la classe 'l'
-# X_l_pca = X_selected_pca[mask_l]
-
-# # 2. Calculer centroïde + seuil
-# center_l = np.mean(X_l_pca, axis=0)
-# distances = np.linalg.norm(X_l_pca - center_l, axis=1)
-# # threshold = 2 * np.std(distances)
-
-# # 3. Masque prédictions 'l'
-# pred_l_mask = predictions_array == "l"
-
-# # === FIGURE FUSIONNÉE ===
-# fig = plt.figure(figsize=(10, 7))
-# ax = fig.add_subplot(111, projection='3d')
-
-# # Nuage d'entraînement
-# ax.scatter(
-#     X_selected_pca[:, 0],
-#     X_selected_pca[:, 1],
-#     X_selected_pca[:, 2],
-#     c=class_colors,
-#     alpha=0.15,
-#     s=10
-# )
-
-# # # Prédictions 'l'
-# # ax.scatter(
-# #     mfcc_pca_temp_reel[pred_l_mask, 0],
-# #     mfcc_pca_temp_reel[pred_l_mask, 1],
-# #     mfcc_pca_temp_reel[pred_l_mask, 2],
-# #     c="deeppink",
-# #     edgecolors="n",
-# #     s=50,
-# #     label="Prédits 'l'"
-# # )
-
-# # Sphères pour chaque centroïde
-# u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
-# for label, center in centroids.items():
-#     r0 = thresholds[label]["axis0"]
-#     r1 = thresholds[label]["axis1"]
-#     r2 = thresholds[label]["axis2"]
-    
-#     x = center[0] + r0 * np.cos(u) * np.sin(v)
-#     y = center[1] + r1 * np.sin(u) * np.sin(v)
-#     z = center[2] + r2 * np.cos(v)
-
-#     ax.plot_surface(x, y, z, color='red', alpha=0.12)
-#     ax.scatter(center[0], center[1], center[2], c='black', marker='x', s=100, label=f"Centroïde {label}")
-
-# ax.set_xlabel("PCA 1")
-# ax.set_ylabel("PCA 2")
-# ax.set_zlabel("PCA 3")
-# ax.set_title("Projection PCA 3D — Centroïdes + sphères seuil")
-
-# plt.tight_layout()
-# plt.show()
-
-##########################################################################################
-# FIGURE 2 — PCA D'ENTRAÎNEMENT + PRÉDICTIONS TEMPS RÉEL SUPERPOSÉES
-
-# # 1. S'assurer que les prédictions sont bien sous forme d'entiers
-# predictions_array = np.array(tab_pred)
-
-# # 2. Masque des prédictions 'l'
-# pred_l_mask = predictions_array == Label.L.value  # donc == 0
-
-# # 3. Normaliser les temps (uniquement si on a des points 'l')
-# if np.any(pred_l_mask):
-#     time_norm = (time_values - np.min(time_values)) / (np.max(time_values) - np.min(time_values))
-#     cmap = matplotlib.colormaps.get_cmap("Blues")
-#     colors_l = [f"rgba({int(255*r)},{int(255*g)},{int(255*b)},{a:.2f})"
-#                 for r, g, b, a in cmap(time_norm[pred_l_mask])]
-# else:
-#     colors_l = []
-
-fig3d = go.Figure()
-
-# 4. Nuage d'entraînement (PCA de base)
-fig3d.add_trace(go.Scatter3d(
-    x=X_selected_pca[:, 0],
-    y=X_selected_pca[:, 1],
-    z=X_selected_pca[:, 2],
-    mode='markers',
-    marker=dict(size=3, color=class_colors, opacity=0.12),
-    name="Base PCA"
-))
-
-# 5. Prédictions temps réel autres que 'l'
-for int_label, color in  {0: "blue", 1: "green", 2: "red", 3: "orange", 4: "purple", 5: "cyan", 6: "brown", 99: "black"}.items():
-    if int_label == 5 or int_label == 6:
-        mask = predictions_array == int_label
-        fig3d.add_trace(go.Scatter3d(
-            x=mfcc_pca_temp_reel[mask ,0],
-            y=mfcc_pca_temp_reel[mask ,1],
-            z=mfcc_pca_temp_reel[mask ,2],
-            mode='markers',
-            marker=dict(size=6, color=color, line=dict(color='black', width=0.5)),
-            name=f"Prédits '{Label(int_label).name.lower()}'",
-            text=[f"t = {t:.2f}s" for t in (np.array(time_values)[mask] * 0.1)],
-            hoverinfo='text'
-    ))
-# # 6. Prédictions 'l' avec dégradé de bleu
-# if np.any(pred_l_mask):
-#     fig3d.add_trace(go.Scatter3d(
-#         x=mfcc_pca_temp_reel[mask ,0],
-#         y=mfcc_pca_temp_reel[mask ,1],
-#         z=mfcc_pca_temp_reel[mask ,2],
-#         mode='markers',
-#         marker=dict(
-#             size=6,
-#             color=colors_l,
-#             line=dict(color='black', width=0.5)
-#         ),
-#         name="Prédits 'l'",
-#         text=[f"t = {t:.2f}s" for t in (np.array(time_values)[pred_l_mask] * 0.1)],
-#         hoverinfo='text'
-#     ))
-
-# 7. Sphères 3D + centroïdes
-u = np.linspace(0, 2*np.pi, 30)
-v = np.linspace(0, np.pi, 30)
-u, v = np.meshgrid(u, v)
-
-for label, center in centroids.items():
-    r0 = thresholds[label]["axis0"]
-    r1 = thresholds[label]["axis1"]
-    r2 = thresholds[label]["axis2"]
-
-    xs = center[0] + r0 * np.cos(u) * np.sin(v)
-    ys = center[1] + r1 * np.sin(u) * np.sin(v)
-    zs = center[2] + r2 * np.cos(v)
-
-    color_label = label.lower()
-    fig3d.add_trace(go.Surface(
-        x=xs, y=ys, z=zs,
-        opacity=0.12,
-        colorscale=[[0, colors[color_label]], [1, colors[color_label]]],
-        showscale=False,
-        name=f"Sphère seuil '{label}'"
-    ))
-
-    fig3d.add_trace(go.Scatter3d(
-        x=[center[0]],
-        y=[center[1]],
-        z=[center[2]],
-        mode="markers+text",
-        marker=dict(size=10, color="black", symbol="x"),
-        text=[f"Centroïde '{label}'"],
-        textposition="top center",
-        name=f"Centroïde '{label}'"
-    ))
-
-# 8. Layout final
-fig3d.update_layout(
-    title="PCA 3D — Prédictions temps réel + sphères seuils et centroïdes",
-    scene=dict(
-        xaxis=dict(title="PCA 1"),
-        yaxis=dict(title="PCA 2"),
-        zaxis=dict(title="PCA 3"),
-        aspectmode="cube"
-    ),
-    legend_title="Légende",
-    margin=dict(l=0, r=0, b=0, t=50)
-)
-
-fig3d.show()

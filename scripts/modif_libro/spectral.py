@@ -179,7 +179,8 @@ def mfcc(
         S = librosa.power_to_db(melspectrogram(y=y, sr=sr, mel_basis=mel_basis, fft_window=fft_window, **kwargs))
 
     M: np.ndarray = scipy.fftpack.dct(S, axis=-2, type=dct_type, norm=norm)[
-        ..., [0, 1, 2, 3, 4, 5, 7, 10, 11], :
+        # ..., [0, 1, 2, 3, 4, 5, 7, 10, 11], :
+        ..., :n_mfcc, :
     ]
 
     if lifter > 0:
