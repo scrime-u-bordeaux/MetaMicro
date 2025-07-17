@@ -18,7 +18,7 @@ import os
 import threading
 
 ##########################################################################################
-# LECTURE YAML
+# CHARGER YAML
 with open("parametre.yaml", "r") as file:
     config = yaml.safe_load(file)
 
@@ -90,10 +90,11 @@ def full_classification_script():
         block_labels = mfcc_matrix["label"].values.astype(int)
 
         log("Equilibrage du dataset…")
+        # Trouver la classe la moins représentée pour avoir un échantillonnage équilibré
         class_counts = Counter(block_labels)
         min_class_size = min(class_counts.values())
 
-        # Fonction pour obtenir les scores de densité
+        # Fonction pour détecter des points les plus isolés avec KNN
         def get_density_scores(X, k=5):
             knn = NearestNeighbors(n_neighbors=k)
             knn.fit(X)
@@ -147,6 +148,7 @@ def full_classification_script():
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
 
+        # Affichage des vecteurs propres
         plt.figure(figsize=(10, 8))
         plt.imshow(np.abs(eigenvectors), aspect='auto', cmap='viridis_r')
         plt.colorbar(label='Valeurs absolues du vecteur propre')
@@ -169,9 +171,13 @@ def full_classification_script():
         plt.show()
 
         # Sélection du meilleur nombre de dimensions selon le score de Davies-Bouldin
-        best_n = np.nanargmin(scores) + 1
+        best_n = np.nanargmin(scores) + 1 # +1 car l'index 0 correspond à n=1
         best_score = scores[best_n - 1]
         log(f"Meilleur score DB : {best_score:.4f} atteint pour n = {best_n} dimensions.")
+
+        # Changement de best score pour l'affichage sur le score vaut 2
+        if best_n == 2:
+            best_n = 3
 
         # Réduction des vecteurs propres aux nombres de dimensions sélectionnés
         best_eigenvectors = eigenvectors[:, :best_n]
@@ -203,13 +209,17 @@ def full_classification_script():
 
         # Affichage de la projection 3D
         log("Affichage de la projection 3D sur les vecteurs propres seuillés…")
+
+        # Mapping label
         label_mapping_inv = {v: k for k, v in label_mapping.items()}
         block_labels_text = [label_mapping_inv[label] for label in block_labels_balanced]
 
+        # Couleurs
         color_palette = ["green", "red", "orange", "purple", "cyan", "brown", "blue", "olive", "pink", "gray"]
         colors = {label: color_palette[i % len(color_palette)] for i, label in enumerate(letters_with_st)}
         class_colors = [colors[label_mapping_inv[l]] for l in block_labels_balanced]
 
+        # Projection 3D sur les vecteurs propres seuillés
         fig = plt.figure(figsize=(10, 8))
         ax = fig.add_subplot(111, projection='3d')
 
@@ -217,14 +227,22 @@ def full_classification_script():
         y = X_proj_thresh[:, dimension_affichage[1]]
         z = X_proj_thresh[:, dimension_affichage[2]]
 
-        scatter = ax.scatter(x, y, z, c=class_colors, alpha=0.6, s=20)
+        # Affichage des points avec couleurs personnalisées
+        # scatter = ax.scatter(x, y, z, c=class_colors, alpha=0.6, s=20)
+
+        # Axes et titre
         ax.set_xlabel("Comp. 1 (seuillée)")
         ax.set_ylabel("Comp. 2 (seuillée)")
         ax.set_zlabel("Comp. 3 (seuillée)")
         ax.set_title("Projection 3D sur vecteurs propres seuillés")
 
-        handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10, label=f"Classe '{label}'")
-                   for label, color in colors.items()]
+        # Légende cohérente avec tes couleurs
+        handles = [
+            plt.Line2D([0], [0], marker='o', color='w', 
+                       markerfacecolor=color, markersize=10, 
+                       label=f"Classe '{label}'")
+                   for label, color in colors.items()
+        ]
         ax.legend(handles=handles, title="Légende")
         plt.tight_layout()
         plt.show()
@@ -278,7 +296,11 @@ def full_classification_script():
                     best_k, best_metric, best_acc = k, metric, avg_score
 
         log(f"Meilleur KNN trouvé : k={best_k}, distance={best_metric}, précision={best_acc:.2%}")
+
+        # Entraînement final
         knn = KNeighborsClassifier(n_neighbors=best_k, metric=best_metric)
+
+        # Fit du modèle KNN
         knn.fit(X_train, y_train)
 
         # Prédiction knn pour la matrice de confusion

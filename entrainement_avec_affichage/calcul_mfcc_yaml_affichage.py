@@ -78,6 +78,7 @@ def compute_mfcc():
         signal, fs = librosa.load(file_path_audio, sr=None)
 
         log("Calcul des caractéristiques…")
+        # Parametres MFCC
         block_size = int(time_of_block * fs)
         recouvrement = int(block_size * recouvrement_block)
         features_per_block = []
@@ -86,7 +87,7 @@ def compute_mfcc():
         letters_with_st = letters + [l for l in ["s", "t"] if l not in letters]
         excluded_pairs = [set(pair) for pair in combinations(letters_with_st, 2)]
 
-        # Calcul des blocs
+        # Identifier les segments pour chaque bloc
         total_blocks = len(range(0, len(signal), recouvrement))
         for i, start in enumerate(range(0, len(signal), recouvrement)):
             block = signal[start:start+block_size]
@@ -104,12 +105,13 @@ def compute_mfcc():
                     overlap_end = min(block_end_time, segment_end)
                     segment_durations[segment_label] += (overlap_end - overlap_start)
 
+            # Trouver les lettres actives (celles qui correspondent aux labels dans le bloc)
             active_segments = [k for k, v in segment_durations.items() if v > 0]
 
-            # Cas 1 — Aucun segment actif
+            # Cas 1 — Aucune lettre active (il y a un silence)
             if len(active_segments) == 0:
                 block_label = "s"
-            # Cas 2 — Deux lettres actives exclues
+            # Cas 2 — Exactement deux lettres actives, la bloc est donc exclu
             elif len(active_segments) == 2 and set(active_segments) in excluded_pairs:
                 continue
             # Cas 3 — Une seule lettre active
@@ -117,27 +119,34 @@ def compute_mfcc():
                 block_label = active_segments[0]
 
             # Calcul MFCC
+            # Construire les filtres de Mel
             n_fft_local = min(n_fft, block_size)
             mel_basis = librosa.filters.mel(sr=fs, n_fft=n_fft_local, fmax=fs/2, n_mels=n_mels)
 
             if len(block) == block_size:
-                # Calcul des n_mfcc grace a librosa
+                # 1. Calculer les MFCC
                 mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs, n_mfcc=n_mfcc,
                                             n_fft=n_fft_local, win_length=n_fft_local, hop_length=n_fft_local // 10,
                                             fmax=fs/2, mel_basis=mel_basis)
                 features = [mfcc.flatten()]
 
-                # Ajout des autres caractéristiques si activées
+                # 2. Delta MFCC (dérivées)
                 if use_delta:
                     delta = librosa.feature.delta(mfcc, order=1)
                     features.append(delta.flatten())
+
+                # 3. Pente moyenne du signal
                 if use_slope:
                     slope = np.diff(block)
                     slope_rms = np.sqrt(np.mean(slope ** 2))
                     features.append(np.array([slope_rms]))
+
+                # 4. Zero-crossing rate
                 if use_zcr:
                     zcr = np.mean(librosa.feature.zero_crossing_rate(block, frame_length=len(block), hop_length=len(block)))
                     features.append(np.array([zcr]))
+
+                # 5. Spectral centroid
                 if use_centroid:
                     centroid = np.mean(librosa.feature.spectral_centroid(y=block, sr=fs))
                     features.append(np.array([centroid]))

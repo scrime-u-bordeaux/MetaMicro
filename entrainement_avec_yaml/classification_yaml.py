@@ -14,10 +14,12 @@ import yaml
 import os
 
 ##########################################################################################
-# LECTURE DES PARAMÈTRES YAML
+# CHARGER YAML
 with open("parametre.yaml", "r") as file:
     config = yaml.safe_load(file)
 
+# Paramètres d'entrée
+file_path_txt = config["calcul_mfcc"]["file_path_txt"]
 input_path = config["correction_avant_classification"]["output_path"]
 letters = config["calcul_mfcc"]["letters"]
 
@@ -30,14 +32,13 @@ test_size    = config["classification"]["parametres_knn"]["test_size"]
 random_state = config["classification"]["parametres_knn"]["random_state"]
 n_neighbors_max = config["classification"]["parametres_knn"]["n_neighbors_max"]
 
-# Entrée et sortie
-file_path_txt = config["calcul_mfcc"]["file_path_txt"]
 
 # Extraire dossier et base_name
 folder = os.path.dirname(file_path_txt)                  
 base_name = os.path.splitext(os.path.basename(file_path_txt))[0] 
 classification = config["classification"]
 
+# Chemins de sortie
 mean_X_output = config["classification"]["outputs"]["mean_X_output"]
 std_X_output  = config["classification"]["outputs"]["std_X_output"]
 proj_pca_output = config["classification"]["outputs"]["proj_pca_output"]
@@ -80,18 +81,18 @@ block_labels = mfcc_matrix["label"].values.astype(int)
 
 ##########################################################################################
 # TROUVER LES POINTS LES PLUS ELOIGNE
-# Trouver la classe la moins représentée
+# Trouver la classe la moins représentée pour avoir un échantillonnage équilibré
 class_counts = Counter(block_labels)
 min_class_size = min(class_counts.values()) 
 
-# Détection des points les plus isolés avec KNN
+# Fonction pour détecter des points les plus isolés avec KNN
 def get_density_scores(X, k=5):
     knn = NearestNeighbors(n_neighbors=k)
     knn.fit(X)
     distances, _ = knn.kneighbors(X)
     return distances.mean(axis=1)
 
-# Undersampling basé sur la densité des points
+# Rééquilibrage du dataset pour éviter les points aberrants selon leur densité
 X_balanced = []
 block_labels_balanced = []
 
@@ -115,6 +116,7 @@ df_balanced["label"] = block_labels_balanced
 
 ##########################################################################################
 # CALCUL DE PCA
+# Centrage et normalisation des données
 X_centered = X_balanced - np.mean(X_balanced, axis=0)
 X_scaled = X_centered / np.std(X_balanced, axis=0)
 
@@ -137,16 +139,16 @@ else:
     print("Aucune sauvegarde effectuée.")
 print(f"Fichier corrigé sauvegardé dans '{std_X_output}'")
 
-# Matrice de var-covar
+# Calcul de la matrice de covariance
 cov_matrix = np.cov(X_scaled.T)
 
-# Val et vect propres
+# Calcul des valeurs et vecteurs propres
 eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
 idx = np.argsort(eigenvalues)[::-1]
 eigenvalues = eigenvalues[idx]
 eigenvectors = eigenvectors[:, idx]
 
-# Affichage des vecteurs propres sous forme d'image
+# Affichage des vecteurs propres
 fig = plt.figure(figsize=(10, 8))
 plt.imshow(np.abs(eigenvectors), aspect='auto', cmap='viridis_r')  # meilleure lisibilité
 plt.colorbar(label='Valeurs absolues du vecteur propre')
@@ -161,7 +163,7 @@ plt.show()
 # Recherche du meilleur nombre de dimensions projetées
 scores = []
 
-# Fonction pour une projection + score pour un j donné
+# Fonction pour une projection et le calcul du score de Davies-Bouldin
 def compute_score(j, X_scaled, eigenvectors, labels):
     try:
         X_proj = X_scaled @ eigenvectors[:, :j]
@@ -186,7 +188,7 @@ plt.grid()
 plt.tight_layout()
 plt.show()
 
-# Trouver la meilleure valeur de n (le score le plus bas)
+# Sélection du meilleur nombre de dimensions selon le score de Davies-Bouldin
 best_n = np.nanargmin(scores) + 1   # +1 car l'index 0 correspond à n=1
 best_score = scores[best_n - 1]
 
@@ -196,7 +198,7 @@ print(f"Meilleur score DB : {best_score:.4f} atteint pour n = {best_n} dimension
 if best_n == 2:
     best_n = 3
 
-# Conserver les n meilleurs vecteurs propres
+# Réduction des vecteurs propres aux nombres de dimensions sélectionnés
 best_eigenvectors = eigenvectors[:, :best_n]
 
 # Affichage
@@ -226,7 +228,6 @@ if suppression_mfcc:
 else:
     # Si on ne supprime pas, on garde les vecteurs propres tels quels
     eigenvectors_thresholded = best_eigenvectors
-
 
 # Affichage des vecteurs propres "seuillés"
 plt.figure(figsize=(12, 6))
@@ -261,15 +262,15 @@ x = X_proj_thresh[:, dimension_affichage[0]]
 y = X_proj_thresh[:, dimension_affichage[1]]
 z = X_proj_thresh[:, dimension_affichage[2]]
 
-# Affichage des points avec couleurs personnalisées
-scatter = ax.scatter(
-    x,
-    y,
-    z,
-    c=class_colors,
-    alpha=0.6,
-    s=20
-)
+# # Affichage des points avec couleurs personnalisées
+# scatter = ax.scatter(
+#     x,
+#     y,
+#     z,
+#     c=class_colors,
+#     alpha=0.6,
+#     s=20
+# )
 
 # Axes et titre
 ax.set_xlabel("Comp. 1 (seuilée)")
@@ -300,7 +301,7 @@ print(f"Nouveau score DB : {score:.4f}")
 
 ##########################################################################################
 # SAUVEGARDE
-# Créer un DataFrame avec la projection seuillée et les labels *textes*
+# Créer un DataFrame avec la projection seuillée 
 df_proj_thresh = pd.DataFrame(X_proj_thresh, columns=[f"comp_{i+1}" for i in range(X_proj_thresh.shape[1])])
 df_proj_thresh["label"] = block_labels_text
 
@@ -323,6 +324,7 @@ else:
     print("Aucune sauvegarde effectuée.")
 print(f"Fichier corrigé sauvegardé dans '{eigenvectors_output}'")
 
+##########################################################################################
 # SI ON VEUT SUPPRIMER DES VALEURS MFCC INUTILES
 if suppression_mfcc:
     block_size = 11
@@ -355,14 +357,12 @@ if suppression_mfcc:
 
     print("eigenvectors_truncated:", eigenvectors_truncated)
 
-# print("eigen_vectors:", eigenvectors_thresholded[:, :j])
-
 ##########################################################################################
 # ENTRAINEMENT
 # Reconvertir les labels texte en entiers pour l'entraînement
 block_labels_int = [k for l in block_labels_text for k, v in label_mapping_inv.items() if v == l]
 
-# Split des données pour classification
+# Séparation des données en train et test
 X_train, X_test, y_train, y_test = train_test_split(
     X_proj_thresh,
     block_labels_int,
@@ -371,7 +371,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
-# Recherche des meilleurs paramètres
+# Recherche des meilleurs paramètres KNN
 best_k = None
 best_distance = None
 best_score = 0
@@ -398,9 +398,8 @@ knn = KNeighborsClassifier(n_neighbors=best_k, metric=best_distance)
 # Fit du modèle KNN
 knn.fit(X_train, y_train)
 
-# Évaluation
+# Prédiction knn pour la matrice de confusion
 y_pred = knn.predict(X_test)
-
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Précision finale du modèle KNN sur test : {accuracy * 100:.2f}%")
 
@@ -413,7 +412,7 @@ else:
     print("Aucune sauvegarde effectuée.")
 print(f"Fichier corrigé sauvegardé dans '{knn_model_output}'")
 
-# MATRICE DE CONFUSION
+# Affichage de la matrice de confusion
 disp = ConfusionMatrixDisplay.from_predictions(
     y_test, y_pred,
     display_labels=letters_with_st,

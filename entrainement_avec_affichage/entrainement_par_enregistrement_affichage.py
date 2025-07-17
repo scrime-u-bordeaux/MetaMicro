@@ -43,6 +43,8 @@ def record_audio():
     log("Initialisation de l’enregistrement…")
     record_button.config(state="disabled")
     p = pyaudio.PyAudio()
+
+    # Ouverture du flux
     stream = p.open(
         format=FORMAT,
         channels=CHANNELS,
@@ -52,9 +54,21 @@ def record_audio():
     )
     audio_frames = []
 
-    letters = config["calcul_mfcc"]["letters"] * 3
 
+    # Enregistrement en continu avec consignes
+    letters = config["calcul_mfcc"]["letters"] * 3
     for label in letters:
+        # Instructions pour l'utilisateur
+        log("Bonjour !")
+        time.sleep(4)
+        log("Je vais vous demander de prononcer 3 voyelles en soufflant.")
+        time.sleep(4)
+        log("Prononcez 'a', 'i' et 'ou' à tour de rôle quand vous verrez 'go' jusqu'à ce que je vous dise 'stop'.")
+        time.sleep(5)
+        log("Vous êtes prêt ?")
+        time.sleep(2)
+
+        # Enregistrement de chaque voyelle
         log(f"Prononcez : {label}")
         countdown(3)
         log("Enregistrement en cours…")

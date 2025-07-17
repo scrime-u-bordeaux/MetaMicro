@@ -6,7 +6,7 @@ from itertools import combinations
 import os
 
 ##########################################################################################
-## LECTURE DES PARAMÈTRES YAML
+# CHARGER YAML
 with open("parametre.yaml", "r") as file:
     config = yaml.safe_load(file)
 
@@ -76,7 +76,7 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
     block_start_time = start / fs  
     block_end_time = (start + block_size) / fs 
 
-    # Trouver la classe dominante   
+    # Trouver la classe dominante dans le bloc
     segment_durations = {label: 0 for label in letters_with_st}
     for _, row in markers_df.iterrows():
         segment_start, segment_end, segment_label = row["start"], row["end"], row["label"]
@@ -87,35 +87,32 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
             overlap_end = min(block_end_time, segment_end)
             segment_durations[segment_label] += (overlap_end - overlap_start) # duree du chevauchement
 
-    # Trouver les lettres actives (celles différents du "s")
+    # Trouver les lettres actives (celles qui ont un label dans le bloc)
     active_segments = [k for k, v in segment_durations.items() if v > 0]
-
     excluded_pairs = [set(pair) for pair in combinations(letters_with_st, 2)]
 
-     # Cas 1 — Aucun segment actif
+    # Cas 1 — Aucune lettre active (il y a un silence)
     if len(active_segments) == 0:
         block_label = "s"
 
-    # Cas 2 — Exactement deux lettres actives, et la paire est dans les exclus
+    # Cas 2 — Exactement deux lettres actives, la bloc est donc exclu
     elif len(active_segments) == 2 and set(active_segments) in excluded_pairs:
         continue  # On ignore ce bloc
 
-    # Cas 3 — Un seul segment actif 
+    # Cas 3 — Une seule lettre active
     elif len(active_segments) == 1:
         block_label = active_segments[0]
 
-    # CALCULS DES DES MFCC ET AUTRES CARACTERISTIQUES
-    # Construire la base de Mel
+    # Calcul MFCC
+    #   
     n_fft=min(n_fft, block_size)
     mel_basis = librosa.filters.mel(sr=fs, n_fft=n_fft, fmax=fs/2, n_mels=n_mels)
 
     if len(block) == block_size:
-
-        # 1. MFCC (dérivées)
+        # 1. Calculer les MFCC
         mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs, n_mfcc=n_mfcc,
                                     n_fft=n_fft, win_length=n_fft, hop_length=n_fft // 10,
                                     fmax=fs/2, mel_basis=mel_basis)
-
         features = [mfcc.flatten()]
 
         # 2. Delta MFCC (dérivées)
@@ -139,7 +136,7 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
             centroid = np.mean(librosa.feature.spectral_centroid(y=block, sr=fs))
             features.append(np.array([centroid]))
 
-        # Stocker les features
+        # Enregistrement des caractéristiques
         feature_vector = np.concatenate(features)
         features_per_block.append(feature_vector)
         block_labels.append(block_label)

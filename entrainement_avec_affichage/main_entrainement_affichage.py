@@ -168,7 +168,7 @@ def choose_audio_or_record():
             save_yaml()
             log(f"Fichier audio : {audio_path}\nFichier texte : {txt_path}")
 
-# Fonction pour concaténer les fichiers audio et texte avec l'entrainement de base et le nouveau
+# Fonction pour concaténer les fichiers audio et texte avec l'entrainement de référence et le nouveau
 def concatenate_files():
     log("Concaténation des fichiers audio et texte…")
     try:

@@ -48,9 +48,18 @@ def analyse_audio():
 
         # Fenêtres d'origine
         timestamps = [
-            (4, 10), (15, 20), (24, 28), (33, 37),
-            (42, 46), (50, 55), (60, 65), (69, 73), (78, None)
+            (4, 10), 
+            (15, 20), 
+            (24, 28), 
+            (33, 37),
+            (42, 46), 
+            (50, 55), 
+            (60, 65), 
+            (69, 73), 
+            (78, None)
         ]
+
+        # Lettres associées
         letters = config["calcul_mfcc"]["letters"] * 3
         windows = [
             (start, end, letters[i]) for i, (start, end) in enumerate(timestamps)

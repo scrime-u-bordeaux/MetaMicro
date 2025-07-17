@@ -5,8 +5,7 @@ import os
 import wave
 
 ##########################################################################################
-# CHARGEMENTS
-# Fichier yaml a compléter
+# CHARGER YAML
 yaml_path = "parametre.yaml"
 
 with open(yaml_path, "r") as file:
@@ -45,7 +44,7 @@ def check_overwrite_or_rename(filepath: str) -> str:
 frame_length = int(0.02 * sr)  # 20 ms
 hop_length = int(0.01 * sr)    # 10 ms
 
-# Calcul RMS et time vector
+# Calcul RMS pour détecter exctement les marqueurs, cad ceux qui sont au-dessus du seuil = mean_rms
 rms = librosa.feature.rms(y=y, frame_length=frame_length, hop_length=hop_length)[0]
 times = librosa.frames_to_time(np.arange(len(rms)), sr=sr, hop_length=hop_length)
 mean_rms = np.mean(rms)
@@ -74,20 +73,15 @@ windows = [
 markers = []
 active = rms > mean_rms 
 
-# Durée de ta.wav = offset pour décaler les fenêtres
 file_path_ta = config["calcul_mfcc"]["file_path_ta"]
 with wave.open(file_path_ta, "rb") as wav_file:
     offset = wav_file.getnframes() / wav_file.getframerate()
 
 for start_sec, end_sec, label in windows:
-    # Masque temporel de la fenêtre
     mask = (times >= start_sec) & (times <= end_sec)
-
     active_in_window = mask & active
     if not np.any(active_in_window):
         continue
-
-    # Regroupement des blocs consécutifs actifs
     indices = np.where(active_in_window)[0]
     groups = np.split(indices, np.where(np.diff(indices) != 1)[0] + 1)
 

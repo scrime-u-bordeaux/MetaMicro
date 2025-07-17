@@ -63,7 +63,6 @@ stream = p.open(
     input=True,
     frames_per_buffer=CHUNK
 )
-
 audio_frames = []
 
 # Enregistrement en continu avec consignes

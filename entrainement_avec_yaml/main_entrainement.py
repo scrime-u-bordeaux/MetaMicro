@@ -22,17 +22,16 @@ yaml_path = "parametre.yaml"
 with open(yaml_path, "r") as file:
     config = yaml.safe_load(file)
 
-# Fonction d'assistance
+# Fonction pour créer un chemin dans le YAML
 def ensure_path(section, key, path):
     section[key] = path
     return section[key]
 
-# choix des lettres
+# choix des lettres à ajouter dans le YAML
 letters = input("Veuillez entrer les lettres à utiliser pour l'entraînement (ex: a,i,u) : ").strip().split(",")
-
-# Ajouter les lettres dans le yaml
 calcul = config["calcul_mfcc"]
 ensure_path(calcul, "letters", letters)
+
 # Sauvegarde 
 with open(yaml_path, "w") as file:
     yaml.dump(config, file, sort_keys=False, allow_unicode=True)
@@ -43,6 +42,7 @@ if condition.lower() == "e":
 
     # Lancement du script d'enregistrement
     run_script("entrainement_par_enregistrement.py")
+
     # Recharge du YAML mis à jour par le script
     with open(yaml_path, "r") as file:
         config = yaml.safe_load(file)
@@ -50,6 +50,7 @@ if condition.lower() == "e":
 
     # Lancement du script d'analyse pour ecricre les marqueurs
     run_script("analyse_entrainement_enregistrement.py")
+
     # Recharge du YAML mis à jour par le script
     with open(yaml_path, "r") as file:
         config = yaml.safe_load(file)
@@ -60,9 +61,7 @@ else:
     file_path_audio_non_concat = input("Veuillez entrer le chemin du fichier audio (ex: ici/test.wav) : ").strip()
 
 ##########################################################################################
-# CONCATENATION DES FICHIERS
-# Concatenation du fichier audio et textes avec le fichier audio qui contient les "t"
-# Fichiers audio
+# CONCATENATION DES FICHIERS AUDIO
 file_audio_ta = config["calcul_mfcc"]["file_path_ta"]
 file_path_audio = "audio.wav"
 
@@ -84,13 +83,14 @@ with wave.open(file_audio_ta, "rb") as ref, wave.open(file_path_audio_non_concat
         file_path_audio_non_concat_converted = "converted_audio.wav"
         audio.export(file_path_audio_non_concat_converted, format="wav")
 
-# Concatener
+# Concatenation du fichier audio avec le fichier audio de référence
 with wave.open(file_audio_ta, "rb") as wav1, wave.open(file_path_audio_non_concat_converted, "rb") as wav2:
+
     # Vérification que les paramètres sont identiques
     params1 = wav1.getparams()
     params2 = wav2.getparams()
 
-    # Comparer seulement les paramètres structurels
+    # Vérifier la compatibilité des paramètres 
     if (params1.nchannels != params2.nchannels or
         params1.sampwidth != params2.sampwidth or
         params1.framerate != params2.framerate or
@@ -106,17 +106,20 @@ with wave.open(file_path_audio, "wb") as out:
     out.setparams(wav1.getparams())
     out.writeframes(frames1 + frames2)
 
+# Mise à jour du YAML
 ensure_path(config["calcul_mfcc"], "file_path_audio", file_path_audio)
 
 # Réécriture du fichier YAML avec les chemins complétés
 with open(yaml_path, "w") as file:
     yaml.dump(config, file, sort_keys=False, allow_unicode=True)
 
-# Fichiers texte
+##########################################################################################
+# CONCATENATION DES FICHIERS TEXTE
 file_text_ta = config["calcul_mfcc"]["file_path_ta_text"]
 file_path_txt = "text.txt"
-# Ouvrir les deux fichiers en lecture
-# Lecture des deux fichiers
+
+
+# Concatenation du fichier texte avec le fichier texte de référence
 with open(file_path_txt_non_concat, "r", encoding="utf-8") as f1, open(file_text_ta, "r", encoding="utf-8") as f2:
     lines1 = f1.readlines()
     lines2 = f2.readlines()
@@ -128,6 +131,7 @@ with open(file_path_txt, "w", encoding="utf-8") as out:
 # Mise à jour du YAML si besoin
 ensure_path(config["calcul_mfcc"], "file_path_txt", file_path_txt)
 
+# Réécriture du fichier YAML avec les chemins complétés
 with open(yaml_path, "w", encoding="utf-8") as f:
     yaml.dump(config, f, sort_keys=False, allow_unicode=True)
 
@@ -140,8 +144,8 @@ base_name = os.path.splitext(os.path.basename(file_path_txt_non_concat))[0]
 
 # Compléter les chemins manquants
 ensure_path(calcul, "output_path", os.path.join(folder, f"mfcc_features_{base_name}.csv"))
-
 correction = config.get("correction_avant_classification", {})
+
 ensure_path(correction, "output_path", os.path.join(folder, f"mfcc_features_{base_name}_corrige.csv"))
 config["correction_avant_classification"] = correction
 

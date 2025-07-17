@@ -3,7 +3,6 @@ import numpy as np
 
 ##########################################################################################
 # CHARGEMENT DES DONNEES
-
 df_loaded = pd.read_csv("data_u_ta_la_ti_li_i_n/mfcc_features.csv")
 X = df_loaded.iloc[:, :-1].values
 block_labels_balanced = df_loaded["label"].values
@@ -13,9 +12,8 @@ colors = {"a": "green", "s": "red", "t": "orange", "n": "brown"}
 class_colors = [colors[l] for l in block_labels_balanced]
 
 ##########################################################################################
-# CORRECTION N-DIMENSIONNELLE
-
-# Création d’un DataFrame avec les features + label texte
+# CORRECTION 
+# Création d’un DataFrame avec les features et label texte
 df_pca = pd.DataFrame(X)
 df_pca["label"] = block_labels_balanced
 
@@ -35,7 +33,7 @@ for label in df_pca["label"].unique():
     # Distances euclidiennes au centroïde
     distances = np.linalg.norm(class_points[feature_cols].values - centroid.values, axis=1)
 
-    # Seuil de distance (adaptable)
+    # Seuil de distance
     threshold = 0.7 * distances.mean() 
 
     # Filtrage

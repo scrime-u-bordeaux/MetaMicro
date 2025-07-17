@@ -45,9 +45,8 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
             overlap_end = min(block_end_time, segment_end)
             segment_durations[segment_label] += (overlap_end - overlap_start) # duree du chevauchement
 
-    # Trouver les lettres actives (durée > 0)
+    # Trouver les lettres actives (celles qui ont un label dans le bloc)
     active_segments = [k for k, v in segment_durations.items() if v > 0]
-
     excluded_pairs = [
         {"t", "a"},
         {"s", "t"},
@@ -64,15 +63,15 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
         {"n", "u"},
     ]
 
-    # Cas 1 — Aucun segment actif
+    # Cas 1 — Aucune lettre active (il y a un silence
     if len(active_segments) == 0:
         block_label = "s"
 
-    # Cas 2 — Exactement deux lettres actives, et la paire est dans les exclus
+    # Cas 2 — Exactement deux lettres actives, la bloc est donc exclu
     elif len(active_segments) == 2 and set(active_segments) in excluded_pairs:
         continue  # On ignore ce bloc
 
-    # Cas 3 — Un seul segment actif 
+    # Cas 3 — Une seule lettre active
     elif len(active_segments) == 1:
         block_label = active_segments[0]
 
@@ -80,10 +79,12 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
     n_fft=min(512, block_size)
     win_length = n_fft
 
-    # Build a Mel filter
+    # Construire les filtres de Mel
     mel_basis = librosa.filters.mel(sr=fs, n_fft=n_fft, fmax=fs/2, n_mels=40)
 
     if len(block) == block_size:
+
+        # 1. Calculer les MFCC
         mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs ,n_mfcc=13, 
                             n_fft=min(512, len(block)), win_length = n_fft, hop_length= win_length // 10,
                             fmax=fs/2, mel_basis = mel_basis)
