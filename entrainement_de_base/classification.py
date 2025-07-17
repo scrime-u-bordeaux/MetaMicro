@@ -18,7 +18,7 @@ from collections import defaultdict
 
 ##########################################################################################
 # CHARGER LES DONNNEES 
-dossier = "data_ta_la_ti_li_i/"
+dossier = "data_u_ta_la_ti_li_i_n/"
 mfcc_matrix = pd.read_csv(dossier + "/mfcc_features_corrige.csv")
 
 # Encoder les labels (t=0, a=1, s=2)
@@ -73,8 +73,8 @@ X_scaled = X_centered / np.std(X_balanced, axis=0)
 # Sauvegarde de la moyenne et de l'écart-type
 mean_X = np.mean(X_balanced, axis=0)
 std_X = np.std(X_balanced, axis=0)
-joblib.dump(mean_X, "data_u_ta_la_ti_li_i_n/mfcc_mean.pkl")
-joblib.dump(std_X, "data_u_ta_la_ti_li_i_n/mfcc_std.pkl")
+joblib.dump(mean_X, dossier + "/mfcc_mean.pkl")
+joblib.dump(std_X, dossier + "/mfcc_std.pkl")
 
 # Calcul de la matrice de covariance
 cov_matrix = np.cov(X_scaled.T)
@@ -281,11 +281,11 @@ df_proj_thresh = pd.DataFrame(X_proj_thresh, columns=[f"comp_{i+1}" for i in ran
 df_proj_thresh["label"] = block_labels_text
 
 # Sauvegarde en CSV
-df_proj_thresh.to_csv("data_u_ta_la_ti_li_i_n/X_proj_scaled_avec_labels_corrige_avant.csv", index=False)
-print("Fichier 'data_u_ta_la_ti_li_i_n/X_proj_scaled_avec_labels_corrige_avant.csv' sauvegardé.")
+df_proj_thresh.to_csv(dossier + "X_proj_scaled_avec_labels_corrige_avant.csv", index=False)
+print("Fichier 'X_proj_scaled_avec_labels_corrige_avant.csv' sauvegardé.")
 
 # Sauvegarde des vecteurs propres seuillés
-joblib.dump(eigenvectors_thresholded[:, :j], "data_u_ta_la_ti_li_i_n/eigenvectors_thresholded_corrige_avant.pkl")
+joblib.dump(eigenvectors_thresholded[:, :j], dossier + "eigenvectors_thresholded_corrige_avant.pkl")
 print("Vecteurs propres seuillés sauvegardés dans 'eigenvectors_thresholded_corrige_avant.pkl'")
 
 ##########################################################################################
@@ -310,7 +310,7 @@ if suppression_mfcc:
     eigenvectors_truncated = eigenvectors_thresholded[rows_to_keep, :j]
 
     # Sauvegarde de la version troncaturée
-    joblib.dump(eigenvectors_truncated, "data_u_ta_la_ti_li_i_n/eigenvectors_thresholded_corrige_avant_tronque.pkl")
+    joblib.dump(eigenvectors_truncated, dossier + "eigenvectors_thresholded_corrige_avant_tronque.pkl")
     print("Vecteurs propres seuillés tronqués sauvegardés dans 'eigenvectors_thresholded_corrige_avant_tronque.pkl'")
 
     print("eigenvectors_truncated:", eigenvectors_truncated)
@@ -362,12 +362,12 @@ y_pred = knn.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Précision finale du modèle KNN sur test : {accuracy * 100:.2f}%")
 
-joblib.dump(knn, "data_u_ta_la_ti_li_i_n/knn_model_db_sans_r_opt_main_corrige_avant.pkl")
+joblib.dump(knn, dossier + "knn_model_db_sans_r_opt_main_corrige_avant.pkl")
 print(" Modèle KNN sauvegardé dans 'knn_model_db_sans_r_opt_main_corrige_avant.pkl'")
 
-# Affichage de la matrice de confusion
-if dossier == "data_u_ta_la_ti_li_i_n/":
-    label_for_display = ["a", "n", "u", "i", "t", "s"]
+# Affichage de la matrice de confusion <-- à modfier selon les lettrs choisies
+if dossier == "data_u_ta_la_ti_li_i_n/": 
+    label_for_display = ["a", "n", "u", "i", "t", "s"] 
 else:
     label_for_display = ["a", "i", "t", "s", "l"]
 

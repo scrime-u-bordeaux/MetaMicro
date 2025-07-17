@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 ##########################################################################################
 # CHARGEMENTS
 # Charger les marqueurs
-file_path = "audio/u_ta_la_ti_li_i_n.txt"
+file_path = "audio/ta_la_ti_li_i.txt"
 
 markers_df = pd.read_csv(file_path, sep="\t", header=None, names=["start", "end", "label"])
 
 # Charger l'audio
-audio_file = "audio/u_ta_la_ti_li_i_n.wav"
+audio_file = "audio/ta_la_ti_li_i.wav"
 signal, fs = librosa.load(audio_file, sr=None)
 
 ##########################################################################################
@@ -36,7 +36,7 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
     block_end_time = (start + block_size) / fs 
 
     # Trouver la classe dominante
-    segment_durations = {"a": 0, "t": 0, "i": 0, "u": 0, "n": 0}
+    segment_durations = {"a": 0, "t": 0, "i": 0, "u": 0, "n": 0, "l": 0}
     for _, row in markers_df.iterrows():
         segment_start, segment_end, segment_label = row["start"], row["end"], row["label"]
         
@@ -61,6 +61,10 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
         {"n", "i"},
         {"n", "s"},
         {"n", "u"},
+        {"l", "a"},
+        {"l", "i"},
+        {"l", "s"},
+        {"l", "u"},
     ]
 
     # Cas 1 — Aucune lettre active (il y a un silence
@@ -121,21 +125,24 @@ df_mfcc = pd.DataFrame(mfcc_matrix)
 df_mfcc["start_time"] = block_start_times
 df_mfcc["label"] = block_labels
 
-df_mfcc.to_csv("data/mfcc_features.csv", index=False) # mfcc_features_ta_la_r_avant ou mfcc_features_ta_la_r_plus_court ou  mfcc_features_ta_la_r_fonctionne
+df_mfcc.to_csv("new_data/mfcc_features.csv", index=False)   
 print("MFCCs calculés et sauvegardés dans 'mfcc_features.csv'")
 
-##########################################################################################
-# AFFICHAGE DU SIGNAL AVEC COULEURS PAR BLOCS
-colors = {"l": "blue", "a": "green", "s": "red", "t": "orange", "r": "purple"}  
-plt.figure(figsize=(12, 4))
-for i, (start_time, label) in enumerate(zip(block_start_times, block_labels)):
-    color = colors[label]
-    plt.plot(time[int(start_time * fs):int((start_time + 0.03) * fs)], 
-             signal[int(start_time * fs):int((start_time + 0.03) * fs)], 
-             color=color)
 
-plt.xlabel("Temps (s)")
-plt.ylabel("Amplitude")
-plt.title("Representation du signal audio avec classification des blocs")
-plt.grid()
-plt.show()
+# /!\ Attention: Le code ci-dessus est lourd et peut prendre du temps à s'exécuter, surtout pour de longs fichiers audio. /!\
+
+# ##########################################################################################
+# # AFFICHAGE DU SIGNAL AVEC COULEURS PAR BLOCS
+# colors = {"a": "green", "s": "red", "t": "orange", "n": "brown", "u": "blue", "i": "purple", "l": "deeppink"}
+# plt.figure(figsize=(12, 4))
+# for i, (start_time, label) in enumerate(zip(block_start_times, block_labels)):
+#     color = colors[label]
+#     plt.plot(time[int(start_time * fs):int((start_time + 0.03) * fs)], 
+#              signal[int(start_time * fs):int((start_time + 0.03) * fs)], 
+#              color=color)
+
+# plt.xlabel("Temps (s)")
+# plt.ylabel("Amplitude")
+# plt.title("Representation du signal audio avec classification des blocs")
+# plt.grid()
+# plt.show()

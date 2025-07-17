@@ -3,12 +3,12 @@ import numpy as np
 
 ##########################################################################################
 # CHARGEMENT DES DONNEES
-df_loaded = pd.read_csv("data_u_ta_la_ti_li_i_n/mfcc_features.csv")
+df_loaded = pd.read_csv("data_ta_la_ti_li_i/mfcc_features.csv")
 X = df_loaded.iloc[:, :-1].values
 block_labels_balanced = df_loaded["label"].values
 
 # Couleurs
-colors = {"a": "green", "s": "red", "t": "orange", "n": "brown"}
+colors = {"a": "green", "s": "red", "t": "orange", "n": "brown", "u": "blue", "i": "purple", "l": "deeppink"}
 class_colors = [colors[l] for l in block_labels_balanced]
 
 ##########################################################################################
@@ -49,5 +49,5 @@ block_labels_filtered = df_filtered["label"].values
 class_colors_filtered = [colors[label] for label in block_labels_filtered]
 
 # Sauvegarde du nouveau DataFrame filtré
-df_filtered.to_csv("data_u_ta_la_ti_li_i_n/mfcc_features_corrige.csv", index=False)
+df_filtered.to_csv("new_data/mfcc_features_corrige.csv", index=False)
 print("Fichier corrigé sauvegardé dans 'mfcc_features_corrige.csv'")
