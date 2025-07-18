@@ -262,15 +262,15 @@ x = X_proj_thresh[:, dimension_affichage[0]]
 y = X_proj_thresh[:, dimension_affichage[1]]
 z = X_proj_thresh[:, dimension_affichage[2]]
 
-# # Affichage des points avec couleurs personnalisées
-# scatter = ax.scatter(
-#     x,
-#     y,
-#     z,
-#     c=class_colors,
-#     alpha=0.6,
-#     s=20
-# )
+# Affichage des points avec couleurs personnalisées
+scatter = ax.scatter(
+    x,
+    y,
+    z,
+    c=class_colors,
+    alpha=0.6,
+    s=20
+)
 
 # Axes et titre
 ax.set_xlabel("Comp. 1 (seuilée)")

@@ -14,6 +14,9 @@ yaml_path = "parametre.yaml"
 with open(yaml_path, "r") as file:
     config = yaml.safe_load(file)
 
+# Chemin de sortie
+output_path = config["calcul_mfcc"]["file_path_audio_non_concat"]
+
 ##########################################################################################
 # PARAMÈTRES AUDIO
 FORMAT = pyaudio.paInt16
@@ -54,20 +57,19 @@ def record_audio():
     )
     audio_frames = []
 
+     # Instructions pour l'utilisateur
+    log("Bonjour !")
+    time.sleep(4)
+    log("Je vais vous demander de prononcer 3 voyelles en soufflant.")
+    time.sleep(4)
+    log("Prononcez 'a', 'i' et 'ou' à tour de rôle quand vous verrez 'go' jusqu'à ce que je vous dise 'stop'.")
+    time.sleep(5)
+    log("Vous êtes prêt ?")
+    time.sleep(2)
 
     # Enregistrement en continu avec consignes
     letters = config["calcul_mfcc"]["letters"] * 3
     for label in letters:
-        # Instructions pour l'utilisateur
-        log("Bonjour !")
-        time.sleep(4)
-        log("Je vais vous demander de prononcer 3 voyelles en soufflant.")
-        time.sleep(4)
-        log("Prononcez 'a', 'i' et 'ou' à tour de rôle quand vous verrez 'go' jusqu'à ce que je vous dise 'stop'.")
-        time.sleep(5)
-        log("Vous êtes prêt ?")
-        time.sleep(2)
-
         # Enregistrement de chaque voyelle
         log(f"Prononcez : {label}")
         countdown(3)
@@ -88,7 +90,7 @@ def record_audio():
     stream.close()
     p.terminate()
     log("Enregistrement terminé.")
-    ask_save_file(audio_frames, p)
+    ask_save_file(audio_frames, p, output_path)
 
 # Fonction pour le compte à rebours
 def countdown(seconds):
@@ -97,12 +99,13 @@ def countdown(seconds):
         time.sleep(1)
 
 # Fonction pour demander où sauvegarder le fichier audio
-def ask_save_file(audio_frames, p):
+def ask_save_file(audio_frames, p, default_path):
     # Boîte de dialogue pour choisir le fichier
     file_path = filedialog.asksaveasfilename(
-        defaultextension=".wav",
-        filetypes=[("Fichiers WAV", "*.wav")],
-        title="Sauvegarder l’audio sous…"
+        defaultextension=".csv" if default_path.endswith(".csv") else ".pkl",
+        filetypes=[("Fichiers CSV", "*.csv"), ("Fichiers Joblib", "*.pkl")],
+        initialfile=os.path.basename(default_path),
+        title="Sauvegarder le fichier sous…"
     )
     if not file_path:
         log("Sauvegarde annulée.")

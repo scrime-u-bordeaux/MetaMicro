@@ -95,7 +95,7 @@ for start_sec, end_sec, label in windows:
 ##########################################################################################
 # ENREGISTREMENT DU FICHIER TEXTE
 while True:
-    filename = check_overwrite_or_rename(input("Où voulez-vous enregistrer le fichier ? (ex: audio/mon_fichier.txt) : ").strip())
+    filename = check_overwrite_or_rename(input("Où voulez-vous enregistrer le fichier ? (ex: script/mon_fichier.txt) : ").strip())
     if filename:
         folder = os.path.dirname(filename)
         if folder and not os.path.exists(folder):

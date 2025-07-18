@@ -48,7 +48,7 @@ proj_pca_output = config["classification"]["outputs"]["proj_pca_output"]
 knn_model_output = config["classification"]["outputs"]["knn_model_output"]
 
 if suppression_mfcc:
-    eigenvectors_output_tronque = config["classification"]["if_suppression_mfcc"]["eigenvectors_output_tronque"]
+    eigenvectors_output = config["classification"]["if_suppression_mfcc"]["eigenvectors_output_tronque"]
 else:
     eigenvectors_output = config["classification"]["outputs"]["eigenvectors_output"]
 
@@ -59,7 +59,7 @@ def log(message):
     text_log.see(tk.END)
     root.update()
 
-# Fonction pour sauvegarder le YAML
+# Fonction pour sauvegarder le fichier
 def ask_save_file(default_path):
     file_path = filedialog.asksaveasfilename(
         defaultextension=".csv" if default_path.endswith(".csv") else ".pkl",
@@ -125,12 +125,23 @@ def full_classification_script():
         save_path = ask_save_file(mean_X_output)
         if save_path:
             joblib.dump(mean_X, save_path)
+            config["classification"]["outputs"]["mean_X_output"] = save_path
+            with open("parametre.yaml", "w") as file:
+                yaml.dump(config, file, sort_keys=False, allow_unicode=True)
             log(f"Moyenne sauvegardée : {save_path}")
+        else:
+            log("Sauvegarde de la moyenne annulée.")
 
         save_path = ask_save_file(std_X_output)
         if save_path:
             joblib.dump(std_X, save_path)
+            config["classification"]["outputs"]["std_X_output"] = save_path
+            with open("parametre.yaml", "w") as file:
+                yaml.dump(config, file, sort_keys=False, allow_unicode=True)
             log(f"Ecart-type sauvegardé : {save_path}")
+        else:
+            log("Sauvegarde de l'écart-type annulée.")
+
 
         # Calcul de la PCA
         log("Calcul de la PCA et vecteurs propres…")
@@ -228,7 +239,14 @@ def full_classification_script():
         z = X_proj_thresh[:, dimension_affichage[2]]
 
         # Affichage des points avec couleurs personnalisées
-        # scatter = ax.scatter(x, y, z, c=class_colors, alpha=0.6, s=20)
+        scatter = ax.scatter(
+            x,
+            y,
+            z,
+            c=class_colors,
+            alpha=0.6,
+            s=20
+        )
 
         # Axes et titre
         ax.set_xlabel("Comp. 1 (seuillée)")
@@ -309,7 +327,11 @@ def full_classification_script():
         log(f"Précision finale sur le jeu de test : {accuracy:.2%}")
 
         # Affichage de la matrice de confusion
-        ConfusionMatrixDisplay.from_predictions(y_test, y_pred).plot(cmap="Blues")
+        disp = ConfusionMatrixDisplay.from_predictions(
+            y_test, y_pred,
+            display_labels=letters_with_st,
+            cmap="Blues"
+        )
         plt.title("Matrice de confusion")
         plt.show()
 
@@ -317,7 +339,12 @@ def full_classification_script():
         save_path = ask_save_file(knn_model_output)
         if save_path:
             joblib.dump(knn, save_path)
-            log(f"Modèle KNN sauvegardé : {save_path}")
+            config["classification"]["outputs"]["knn_model_output"] = save_path
+            with open("parametre.yaml", "w") as file:
+                yaml.dump(config, file, sort_keys=False, allow_unicode=True)
+            log(f"Moldèle KNN sauvegardée : {save_path}")
+        else:
+            log("Sauvegarde du modèle KNN annulée.")
 
     except Exception as e:
         log(f"Erreur : {e}")

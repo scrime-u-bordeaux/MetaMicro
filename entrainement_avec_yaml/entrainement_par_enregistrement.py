@@ -96,7 +96,7 @@ p.terminate()
 # Demande du nom de fichier
 while True:
     filename = check_overwrite_or_rename(
-        input("Où voulez-vous enregistrer le fichier ? (ex: audio/mon_fichier.wav) : ").strip()
+        input("Où voulez-vous enregistrer le fichier ? (ex: script/mon_fichier.wav) : ").strip()
     )
 
     if filename:

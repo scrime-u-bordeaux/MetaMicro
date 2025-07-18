@@ -4,6 +4,7 @@ import subprocess
 import time
 import wave
 from pydub import AudioSegment
+import shutil
 
 ##########################################################################################
 # FONCTION DE LANCEMENT DES SCRIPTS PYTHON
@@ -118,7 +119,6 @@ with open(yaml_path, "w") as file:
 file_text_ta = config["calcul_mfcc"]["file_path_ta_text"]
 file_path_txt = "text.txt"
 
-
 # Concatenation du fichier texte avec le fichier texte de référence
 with open(file_path_txt_non_concat, "r", encoding="utf-8") as f1, open(file_text_ta, "r", encoding="utf-8") as f2:
     lines1 = f1.readlines()
@@ -143,7 +143,7 @@ folder = os.path.dirname(file_path_txt_non_concat)
 base_name = os.path.splitext(os.path.basename(file_path_txt_non_concat))[0]
 
 # Compléter les chemins manquants
-ensure_path(calcul, "output_path", os.path.join(folder, f"mfcc_features_{base_name}.csv"))
+ensure_path(calcul, "output_path", os.path.join(folder, f"mfcc_features.csv"))
 correction = config.get("correction_avant_classification", {})
 
 ensure_path(correction, "output_path", os.path.join(folder, f"mfcc_features_{base_name}_corrige.csv"))
@@ -156,7 +156,7 @@ ensure_path(outputs, "std_X_output", os.path.join(folder, f"mfcc_std_{base_name}
 ensure_path(outputs, "proj_pca_output", os.path.join(folder, f"X_proj_scaled_{base_name}.csv"))
 ensure_path(outputs, "eigenvectors_output", os.path.join(folder, f"eigenvectors_{base_name}.pkl"))
 ensure_path(outputs, "knn_model_output", os.path.join(folder, f"knn_model_{base_name}.pkl"))
-ensure_path(if_suppression_mfcc, "eigenvectors_output_tronque", os.path.join(folder, f"eigenvectors_tronque{base_name}.pkl"))
+ensure_path(if_suppression_mfcc, "eigenvectors_output_tronque", os.path.join(folder, f"eigenvectors_tronque_{base_name}.pkl"))
 
 # Réécriture du fichier YAML avec les chemins complétés
 with open(yaml_path, "w") as file:
@@ -166,11 +166,20 @@ print(f"Fichier YAML mis à jour avec les chemins complétés : {yaml_path}")
 
 ##########################################################################################
 # LANCEMENT DES SCRIPTS PYTHON
-
 # Ordre d'exécution
 time.sleep(1)
-run_script("calcul_mfcc_yaml.py")
+# run_script("calcul_mfcc_yaml.py")
 run_script("correction_avant_classification_yaml.py")
 run_script("classification_yaml.py")
 
 print("\nPipeline terminé avec succès.")
+
+##########################################################################################
+# COPIER LE FICHIER YAML DANS LE DOSSIER
+# Copier le fichier parametre.yaml dans le dossier
+destination = os.path.join(folder, "parametre.yaml")
+
+# Copie du fichier
+shutil.copy(yaml_path, destination)
+
+print(f"Le fichier {yaml_path} a été copié dans {destination}")

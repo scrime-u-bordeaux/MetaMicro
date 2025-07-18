@@ -15,23 +15,27 @@ yaml_path = "parametre.yaml"
 with open(yaml_path, "r") as file:
     config = yaml.safe_load(file)
 
+# Parametres d'entrée
 letters = config["calcul_mfcc"]["letters"]
 file_path_txt = config["calcul_mfcc"]["file_path_txt"]
 file_path_audio = config["calcul_mfcc"]["file_path_audio"]
 time_of_block = config["calcul_mfcc"]["time_of_block"]
 recouvrement_block = config["calcul_mfcc"]["recouvrement_block"]
 
+# Paramètres MFCC
 mfcc_params = config["calcul_mfcc"]["pamatres_mfcc"]
 n_mfcc = mfcc_params["n_mfcc"]
 n_fft = mfcc_params["n_fft"]
 n_mels = mfcc_params["n_mels"]
 
+# Autres paramètres
 other_params = config["calcul_mfcc"]["other_params"]
 use_delta = other_params.get("delta_mfcc", False)
 use_zcr = other_params.get("zero_crossing", False)
 use_centroid = other_params.get("centroid", False)
 use_slope = other_params.get("slope", False)
 
+# Chemin de sortie
 output_path = config["calcul_mfcc"]["output_path"]
 
 ##########################################################################################
@@ -45,6 +49,16 @@ def log(message):
 def save_yaml():
     with open(yaml_path, "w", encoding="utf-8") as file:
         yaml.dump(config, file, sort_keys=False, allow_unicode=True)
+
+# Fonction pour sauvegarder le fichier
+def ask_save_file(default_path):
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".csv" if default_path.endswith(".csv") else ".pkl",
+        filetypes=[("Fichiers CSV", "*.csv"), ("Fichiers Joblib", "*.pkl")],
+        initialfile=os.path.basename(default_path),
+        title="Sauvegarder le fichier sous…"
+    )
+    return file_path if file_path else None
 
 # Fonction pour demander où sauvegarder le fichier
 def check_overwrite_or_rename(filepath: str) -> str:
@@ -64,6 +78,12 @@ def check_overwrite_or_rename(filepath: str) -> str:
             if not filepath:
                 return None
     return filepath
+
+# Fonction pour mettre à jour la valeur du pourcentage
+def update_progress(i, total_blocks):
+    progress = (i + 1) / total_blocks * 100
+    progress_var.set(progress)
+    progress_label.config(text=f"{int(progress)}%")  # Mise à jour du label avec le pourcentage
 
 ##########################################################################################
 # CALCUL MFCC
@@ -128,6 +148,7 @@ def compute_mfcc():
                 mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs, n_mfcc=n_mfcc,
                                             n_fft=n_fft_local, win_length=n_fft_local, hop_length=n_fft_local // 10,
                                             fmax=fs/2, mel_basis=mel_basis)
+                
                 features = [mfcc.flatten()]
 
                 # 2. Delta MFCC (dérivées)
@@ -158,6 +179,7 @@ def compute_mfcc():
                 block_start_times.append(block_start_time)
 
             progress_var.set((i+1)/total_blocks*100)
+            update_progress(i, total_blocks)
             root.update_idletasks()
 
         log("Calcul terminé.")
@@ -173,11 +195,7 @@ def save_results(features_per_block, block_labels, block_start_times):
     df_mfcc["start_time"] = block_start_times
     df_mfcc["label"] = block_labels
 
-    file_path = filedialog.asksaveasfilename(
-        defaultextension=".csv",
-        filetypes=[("Fichiers CSV", "*.csv")],
-        title="Sauvegarder les MFCC sous…"
-    )
+    file_path = ask_save_file(output_path)
     if not file_path:
         log("Sauvegarde annulée.")
         return
@@ -238,6 +256,16 @@ start_button.pack(fill="x", pady=10)
 progress_var = tk.DoubleVar()
 progress_bar = ttk.Progressbar(frame, variable=progress_var, maximum=100, length=300, mode="determinate")
 progress_bar.pack(pady=10)
+
+# Label pour afficher le pourcentage de progression
+progress_label = tk.Label(
+    frame,
+    text="0%",  # Initialisation du pourcentage à 0%
+    font=button_font,
+    bg="#34495e",
+    fg="white"
+)
+progress_label.pack(pady=5)
 
 # Zone de log
 text_log = tk.Text(

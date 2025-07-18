@@ -14,6 +14,9 @@ yaml_path = "parametre.yaml"
 with open(yaml_path, "r") as file:
     config = yaml.safe_load(file)
 
+# Chemin de sortie
+output_path = config["calcul_mfcc"]["file_path_txt_non_concat"]
+
 ##########################################################################################
 # FONCTIONS
 def log(message):
@@ -25,6 +28,17 @@ def log(message):
 def save_yaml():
     with open(yaml_path, "w", encoding="utf-8") as file:
         yaml.dump(config, file, sort_keys=False, allow_unicode=True)
+
+# Fonction pour sauvegarder le fichier
+def ask_save_file(default_path):
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".csv" if default_path.endswith(".csv") else ".pkl",
+        filetypes=[("Fichiers CSV", "*.csv"), ("Fichiers Joblib", "*.pkl")],
+        initialfile=os.path.basename(default_path),
+        title="Sauvegarder le fichier sous…"
+    )
+    return file_path if file_path else None
+
 
 # Fonctions pour lancer l'analyse de l'audio dans un thread
 def process_audio():
@@ -91,11 +105,7 @@ def analyse_audio():
         log(f"{len(markers)} marqueurs détectés.")
 
         # Demander où sauvegarder
-        file_path_txt = filedialog.asksaveasfilename(
-            defaultextension=".txt",
-            filetypes=[("Fichiers texte", "*.txt")],
-            title="Sauvegarder les marqueurs sous…"
-        )
+        file_path_txt = ask_save_file(output_path)
         if not file_path_txt:
             log("Sauvegarde annulée.")
             return

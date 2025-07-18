@@ -6,6 +6,7 @@ import os
 import wave
 from pydub import AudioSegment
 from tkinter import font
+import shutil
 
 ##########################################################################################
 # FONCTIONS 
@@ -246,6 +247,18 @@ def launch_scripts():
         if run_script("correction_avant_classification_yaml_affichage.py"):
             run_script("classification_yaml_affichage.py")
 
+# Fonction pour ajouter le YAML au dossier
+def add_yaml_to_folder():
+    try:
+        folder = os.path.dirname(config["calcul_mfcc"]["output_path"]) 
+        destination = os.path.join(folder, "parametre.yaml")
+        shutil.copy(yaml_path, destination)
+        
+        log(f"Le fichier {yaml_path} a été copié dans {destination}")
+
+    except Exception as e:
+        log(f"Erreur lors de la copie : {e}")
+
 ##########################################################################################
 # INTERFACE
 root = tk.Tk()
@@ -288,6 +301,12 @@ btn_scripts = tk.Button(frame, text="Lancer le scripts complet", command=launch_
                          bg="#6A4878", fg="white", activebackground="#8e44ad", activeforeground="white",
                          bd=0, padx=10, pady=5)
 btn_scripts.pack(fill="x", pady=5)
+
+# Bouton pour ajouter le YAML au dossier
+btn_add_yaml = tk.Button(frame, text="Ajouter le YAML au dossier", command=add_yaml_to_folder, font=button_font,
+                         bg="#6A4878", fg="white", activebackground="#8e44ad", activeforeground="white",
+                         bd=0, padx=10, pady=5)
+btn_add_yaml.pack(fill="x", pady=5)
 
 # Zone de log
 text_log = tk.Text(

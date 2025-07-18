@@ -10,27 +10,35 @@ import os
 with open("parametre.yaml", "r") as file:
     config = yaml.safe_load(file)
 
+# Parametres d'entrée
 letters = config["calcul_mfcc"]["letters"]
 file_path_txt = config["calcul_mfcc"]["file_path_txt"]
 file_path_audio = config["calcul_mfcc"]["file_path_audio"]
 time_of_block = config["calcul_mfcc"]["time_of_block"]
 recouvrement_block = config["calcul_mfcc"]["recouvrement_block"]
 
+# Paramètres MFCC
 mfcc_params = config["calcul_mfcc"]["pamatres_mfcc"]
 n_mfcc = mfcc_params["n_mfcc"]
 n_fft = mfcc_params["n_fft"]
 n_mels = mfcc_params["n_mels"]
 
+# Autres paramètres
 other_params = config["calcul_mfcc"]["other_params"]
 use_delta = other_params.get("delta_mfcc", False)
 use_zcr = other_params.get("zero_crossing", False)
 use_centroid = other_params.get("centroid", False)
 use_slope = other_params.get("slope", False)
 
+# Chemin de sortie
 output_path = config["calcul_mfcc"]["output_path"]
+file_path_txt_non_concat = config["calcul_mfcc"]["file_path_txt_non_concat"]
+
+# Chemin du YAML
+yaml_path = "parametre.yaml"
 
 ##########################################################################################
-# VERIDICATION DE L'EXISTANCE DES FICHIERS
+# VERIFICATION DE L'EXISTANCE DES FICHIERS
 def check_overwrite_or_rename(filepath: str) -> str:
     while os.path.exists(filepath):
         response = input(f"Le fichier '{filepath}' existe déjà. Voulez-vous l'écraser ? (o/n) : ").strip().lower()
@@ -42,12 +50,18 @@ def check_overwrite_or_rename(filepath: str) -> str:
                 print("Écriture annulée.")
                 return None
             filepath = new_path
+            print(f"Le fichier sera sauvegardé sous le nom '{filepath}'.")
         else:
             print("Réponse non reconnue. Répondez par 'o' ou 'n'.")
     return filepath
 
+# Fonction pour créer un chemin dans le YAML
+def ensure_path(section, key, path):
+    section[key] = path
+    return section[key]
+
 ##########################################################################################
-## CHARGEMENT DES DONNÉES
+# CHARGEMENT DES DONNÉES
 # Charger les marqueurs
 markers_df = pd.read_csv(file_path_txt, sep="\t", header=None, names=["start", "end", "label"])
 
@@ -104,7 +118,6 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
         block_label = active_segments[0]
 
     # Calcul MFCC
-    #   
     n_fft=min(n_fft, block_size)
     mel_basis = librosa.filters.mel(sr=fs, n_fft=n_fft, fmax=fs/2, n_mels=n_mels)
 
@@ -144,15 +157,42 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
 
 ##########################################################################################
 # SAUVEGARDE
+# Sauvegarder le fichier CSV
 mfcc_matrix = np.array(features_per_block)
 df_mfcc = pd.DataFrame(mfcc_matrix)
 df_mfcc["start_time"] = block_start_times
 df_mfcc["label"] = block_labels
 
-# Vérification de l'existence du fichier et demande de confirmation
-final_path = check_overwrite_or_rename(output_path)
+# Dossier cible pour la sauvegarde
+folder = os.path.dirname(file_path_txt_non_concat)  # Utilisation du dossier de 'file_path_txt_non_concat'
+
+# Crée le dossier si nécessaire
+if not os.path.exists(folder):
+    os.makedirs(folder)
+    print(f"Le dossier '{folder}' a été créé avec succès.")
+else:
+    print(f"Le dossier '{folder}' existe déjà.")
+
+# Définir le chemin de sauvegarde pour le fichier CSV
+final_path = os.path.join(folder, "mfcc_features.csv")
+
+# Vérifier si le fichier existe déjà et demander à l'utilisateur s'il veut l'écraser
+final_path = check_overwrite_or_rename(final_path)
+
+# Si le chemin final est valide, sauvegarder le fichier CSV
 if final_path:
-    df_mfcc.to_csv(output_path, index=False)
+    df_mfcc.to_csv(final_path, index=False)
     print(f"Fichier sauvegardé dans {final_path}")
+    
+    # Mise à jour du chemin dans le YAML
+    ensure_path(config["calcul_mfcc"], "output_path", final_path)
+    
+    # Sauvegarder le fichier YAML avec le nouveau chemin
+    with open(yaml_path, "w", encoding="utf-8") as f:
+        yaml.dump(config, f, sort_keys=False, allow_unicode=True)
+    print(f"Le chemin de sortie a été mis à jour dans le fichier YAML : {final_path}")
 else:
     print("Aucune sauvegarde effectuée.")
+
+# Enregistre le chemin du fichier CSV dans le YAML
+config["calcul_mfcc"]["output_path"] = final_path
