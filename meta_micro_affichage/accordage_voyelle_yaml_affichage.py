@@ -713,9 +713,8 @@ def audio_loop():
                             majority_label == label_mapping["t"]
                             and len(majority_label_prec) == n_label_for_use_remplacer_t_par_i
                             and all(lbl == label_mapping["t"] for lbl in majority_label_prec)
-                        ):
-                            majority_label = Label.VIDE.value
-                            # majority_label = Label.I.value
+                        ):g
+                            majority_label = Label.I.value
 
                     mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction
                     time_values.extend([start / fs] * len(predictions)) # Decommenter pour correction
