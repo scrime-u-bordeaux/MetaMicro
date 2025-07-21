@@ -29,7 +29,8 @@ stream = p.open(
     frames_per_buffer=CHUNK
 )
 
-# --------- FENÊTRE TKINTER ----------
+##########################################################################################
+# FENÊTRE TKINTER 
 root = tk.Tk()
 root.title("Soufflez fort")
 root.geometry("400x200")

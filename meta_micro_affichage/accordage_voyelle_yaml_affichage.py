@@ -24,11 +24,6 @@ import matplotlib
 import time
 
 ##########################################################################################
-# CHANGER LA SOURCE ET LA SORTIE 
-# pactl set-default-source alsa_input.usb-Focusrite_Scarlett_4i4_USB_D89YRE90C17918-00.multichannel-input
-# pactl set-default-sink alsa_output.pci-0000_00_1f.3.analog-stereo
-
-##########################################################################################
 ## LECTURE DES PARAMÈTRES YAML
 with open("parametre.yaml", "r") as file:
     config = yaml.safe_load(file)
@@ -60,6 +55,7 @@ CHANNEL_RESPIRO = main_respiro_param["CHANNEL_RESPIRO"]
 CC_rms = main_respiro_param["CC_rms"] # Channel 2: Breath Control
 CC_i = main_respiro_param["CC_i"]   # Channel 9: changement de timbre i
 CC_u = main_respiro_param["CC_u"]  # Channel 14: changment de timbre u
+CC_a = main_respiro_param["CC_a"]  # changment de timbre a
 
 # Charger le fichier MIDI
 midi_file = mido.MidiFile(main_respiro_param["midi_file"])
@@ -229,31 +225,51 @@ def transition(etat, char):
         action = "OFF"
         midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))       # timbre i
         midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))       # timbre u
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))       # timbre a
     elif etat in {"3", "4", "11", "14"}:
         action = "ON"
         if etat in {"11"}:
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))   # timbre a
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))   # timbre u
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=127)) # timbre i
         if etat in {"14"}:
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))   # timbre a
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=127)) # timbre u
+        if etat in {"4"}:
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))   # timbre u
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=127)) # timbre a
         else:
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))   # timbre u
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))   # timbre a
     elif etat in {"8", "12", "15"}:
         action = "ON_OFF"
         if etat == "12":
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))   # timbre a
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))   # timbre u
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=127)) # timbre i
         if etat == "15":
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))   # timbre a
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=127)) # timbre u
-        else:
+        if etat == "8":
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
             midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))   # timbre u
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=127)) # timbre a
     elif etat == "13":
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))       # timbre a
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))       # timbre u
         midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=127))     # timbre i
     elif etat == "16":
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))       # timbre i
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))       # timbre a
         midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=127))     # timbre u
     elif etat == "9":
         midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))       # timbre i
         midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))       # timbre u
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=127))     # timbre a
     return new_state, action
 
 # NOTE_ON AND NOTE_OFF
@@ -375,7 +391,8 @@ csv_writer.writerow(["timestamp (ms)", "predictions_labels", "label_counts", "ma
 
 stop_flag = threading.Event()
 
-# --------- FENÊTRE TKINTER ----------
+##########################################################################################
+# FENÊTRE TKINTER 
 root = tk.Tk()
 root.title("Contrôle en temps réel")
 root.geometry("500x250")
@@ -458,7 +475,8 @@ plt.show()
 cycle_duration = 2
 last_update_time = 0
 
-# --------- BOUCLE AUDIO DANS UN THREAD ----------
+##########################################################################################
+# BOUCLE AUDIO DANS UN THREAD 
 historique_lettres = []
 etat = "1"
 def audio_loop():
@@ -587,13 +605,6 @@ def audio_loop():
                                 min_dist = min(distances_to_centroids.values())
                                 max_dist = max(distances_to_centroids.values())
 
-                                # # Affichage avec couleurs de base
-                                # for lbl in ["A", "I", "T", "S"]:
-                                #     dist = distances_to_centroids[lbl]
-                                #     color = color_code_basic(dist, min_dist, max_dist)
-                                #     # print(f"{color}{lbl} = {dist:.2f}\033[0m")
-                                #     print("\r" + "".join(f"{color_code_basic(distances_to_centroids[lbl], min_dist, max_dist)}{lbl}\033[0m " for lbl in ["A", "I", "T", "S"]), end="", flush=True)
-
                                 # Trier les lettres par distance croissante
                                 sorted_labels = sorted(distances_to_centroids.items(), key=lambda x: x[1])
 
@@ -603,15 +614,6 @@ def audio_loop():
                                 # Extraire uniquement les lettres
                                 displayed_letters = [lbl for lbl, _ in closest_labels]
 
-                                # Affichage des 2 lettres les plus proches avec leurs couleurs
-                                # print(
-                                #     "\r" + "".join(
-                                #         f"{color_code_basic(dist, min_dist, max_dist)}{lbl}\033[0m "
-                                #         for lbl, dist in closest_labels
-                                #     ),
-                                #     end="",
-                                #     flush=True
-                                # )
                                 # Mettre à jour l’affichage des lettres
                                 for i, txt in enumerate(text_objects):
                                     txt.set_text(displayed_letters[i])
@@ -757,7 +759,7 @@ def audio_loop():
 audio_thread = threading.Thread(target=audio_loop)
 audio_thread.start()
 
-# --------- LANCEMENT INTERFACE ----------
+# LANCEMENT INTERFACE 
 root.mainloop()
 audio_thread.join()
     
