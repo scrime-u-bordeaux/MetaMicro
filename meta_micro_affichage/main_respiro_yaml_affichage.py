@@ -323,13 +323,12 @@ class Event(Enum):
     ON_NOTE_L = 3
     OFF_I = 4
     
-# Chargement du jeu d'entraînement pour obtenir les points 'l'
+# Chargement du jeu d'entraînement
 label_mapping = {label: idx + 1 for idx, label in enumerate(letters_with_st)}
 
 df_ent["label"] = df_ent["label"].map(label_mapping)
 
 X_ent = df_ent.iloc[:, :-1].values
-print(df_ent["label"].values)
 y_ent = df_ent["label"].values.astype(int)
 
 centroids = {}
@@ -415,6 +414,7 @@ stop_button = tk.Button(
 )
 stop_button.pack(pady=15)
 
+##########################################################################################
 # BOUCLE AUDIO DANS UN THREAD 
 etat = "1"
 def audio_loop():
@@ -513,7 +513,7 @@ def audio_loop():
                     df_mfcc = pd.DataFrame(mfcc_buffer)
                     df_mfcc_pca = df_mfcc @ eigenvectors_thresholded
 
-                    # Recherche des voisinsu niquement dans le rayon
+                    # Recherche des voisins uniquement dans le rayon
                     indices_radius, distances_radius = tree.query_radius(df_mfcc_pca, r=radius, return_distance=True, sort_results=True)
 
                     predictions = []
@@ -578,8 +578,7 @@ def audio_loop():
                             and len(majority_label_prec) == n_label_for_use_remplacer_t_par_i
                             and all(lbl == label_mapping["t"] for lbl in majority_label_prec)
                         ):
-                            majority_label = Label.VIDE.value
-                            # majority_label = Label.I.value
+                            majority_label = Label.I.value
 
                     mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction
                     time_values.extend([start / fs] * len(predictions)) # Decommenter pour correction
@@ -596,9 +595,7 @@ def audio_loop():
                             f"{timestamp:.3f}",
                             str(predictions_labels),
                             str(dict(label_counts)),
-                            label_name,
-                            rms,
-                            midi_val_rms
+                            label_name
                         ])
                         log_file.flush()
 

@@ -336,7 +336,7 @@ class Event(Enum):
     ON_NOTE_L = 3
     OFF_I = 4
     
-# Chargement du jeu d'entraînement pour obtenir les points 'l'
+# Chargement du jeu d'entraînement 
 label_mapping = {label: idx + 1 for idx, label in enumerate(letters_with_st)}
 label_mapping_reverse = {v: k for k, v in label_mapping.items()}
 label_mapping_reverse[99] = "vide"
@@ -599,7 +599,7 @@ def audio_loop():
                                 # Calcul des distances aux centroïdes
                                 distances_to_centroids = {                            
                                     label: np.linalg.norm(batch_center - centroids[label])
-                                    for label in ["A", "I", "T", "S"]                        
+                                    for label in [l.upper() for l in letters_with_st]                        
                                     }
 
                                 min_dist = min(distances_to_centroids.values())
@@ -714,8 +714,7 @@ def audio_loop():
                             and len(majority_label_prec) == n_label_for_use_remplacer_t_par_i
                             and all(lbl == label_mapping["t"] for lbl in majority_label_prec)
                         ):
-                            majority_label = Label.VIDE.value
-                            # majority_label = Label.I.value
+                            majority_label = Label.I.value
 
                     mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction
                     time_values.extend([start / fs] * len(predictions)) # Decommenter pour correction
@@ -759,6 +758,7 @@ def audio_loop():
 audio_thread = threading.Thread(target=audio_loop)
 audio_thread.start()
 
+##########################################################################################
 # LANCEMENT INTERFACE 
 root.mainloop()
 audio_thread.join()

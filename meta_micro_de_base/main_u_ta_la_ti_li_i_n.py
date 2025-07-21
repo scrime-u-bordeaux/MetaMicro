@@ -410,7 +410,6 @@ try:
 
                 # Supprimer les 'vide' du comptage
                 non_vide_counts = {label: count for label, count in label_counts.items() if label != "vide"}
-
                         
                 # Maintenant on peut appeler np.bincount en toute sécurité
                 majority_label = int(np.bincount(predictions_indices).argmax())
