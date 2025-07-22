@@ -77,7 +77,7 @@ for label in letters:
 
     duration = 9  # secondes d'enregistrement pour cette voyelle
     for _ in range(0, int(RATE / CHUNK * duration)):
-        data = stream.read(CHUNK)
+        data = stream.read(CHUNK, exception_on_overflow=False)
         audio_frames.append(data)
 
     print("stop")

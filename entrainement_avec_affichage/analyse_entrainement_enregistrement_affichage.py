@@ -17,8 +17,8 @@ with open(yaml_path, "r") as file:
 # Chemin de sortie
 output_path = config["calcul_mfcc"]["file_path_txt_non_concat"]
 
-##########################################################################################
-# FONCTIONS
+##############NS############################################################################
+# FONCTIO
 def log(message):
     text_log.insert(tk.END, message + "\n")
     text_log.see(tk.END)
@@ -32,8 +32,8 @@ def save_yaml():
 # Fonction pour sauvegarder le fichier
 def ask_save_file(default_path):
     file_path = filedialog.asksaveasfilename(
-        defaultextension=".csv" if default_path.endswith(".csv") else ".pkl",
-        filetypes=[("Fichiers CSV", "*.csv"), ("Fichiers Joblib", "*.pkl")],
+        defaultextension=".txt" if default_path.endswith(".txt") else ".pkl",
+        filetypes=[("Fichiers TXT", "*.txt"), ("Fichiers Joblib", "*.pkl")],
         initialfile=os.path.basename(default_path),
         title="Sauvegarder le fichier sous…"
     )
@@ -156,9 +156,9 @@ start_button = tk.Button(
     command=process_audio,
     font=button_font,
     bg="#6A4878",
-    fg="white",
+    fg="black",
     activebackground="#8e44ad",
-    activeforeground="white",
+    activeforeground="black",
     bd=0,
     padx=10,
     pady=5
@@ -172,7 +172,7 @@ text_log = tk.Text(
     width=70,
     bg="#1e272e",
     fg="#b086c0",
-    insertbackground="white",
+    insertbackground="black",
     font=log_font,
     bd=2,
     relief="sunken"

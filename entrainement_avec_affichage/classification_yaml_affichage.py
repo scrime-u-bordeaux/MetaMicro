@@ -17,6 +17,9 @@ import yaml
 import os
 import threading
 
+import matplotlib
+matplotlib.use("TkAgg")
+
 ##########################################################################################
 # CHARGER YAML
 with open("parametre.yaml", "r") as file:
@@ -73,7 +76,7 @@ def ask_save_file(default_path):
 # SCRIPT CLASSIFICATION
 # Fonction pour lancer le script de classification
 def start_script():
-    threading.Thread(target=full_classification_script).start()
+    root.after(100, full_classification_script)
 
 def full_classification_script():
     try:
@@ -383,9 +386,9 @@ start_button = tk.Button(
     command=start_script,
     font=button_font,
     bg="#6A4878",
-    fg="white",
+    fg="black",
     activebackground="#8e44ad",
-    activeforeground="white",
+    activeforeground="black",
     bd=0,
     padx=10,
     pady=5
@@ -399,7 +402,7 @@ text_log = tk.Text(
     width=80,
     bg="#1e272e",
     fg="#b086c0",
-    insertbackground="white",
+    insertbackground="black",
     font=log_font,
     bd=2,
     relief="sunken"

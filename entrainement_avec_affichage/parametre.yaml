@@ -4,9 +4,9 @@ calcul_mfcc:
   - i
   file_path_ta: ta_ti_i.wav
   file_path_ta_text: ta_ti_i.txt
-  file_path_txt_non_concat: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/entrainement_avec_affichage/script/mon_fichier.txt
+  file_path_txt_non_concat: /Users/noemiekt/Documents/MetaMicro/entrainement_avec_affichage/script/mon_fichier.txt
   file_path_txt: text.txt
-  file_path_audio_non_concat: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/entrainement_avec_affichage/script/mon_fichier.wav
+  file_path_audio_non_concat: /Users/noemiekt/Documents/MetaMicro/entrainement_avec_affichage/script/mon_fichier.wav
   file_path_audio: audio.wav
   time_of_block: 0.005
   recouvrement_block: 0.5
@@ -19,10 +19,10 @@ calcul_mfcc:
     zero_crossing: true
     centroid: false
     slope: true
-  output_path: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/entrainement_avec_affichage/script/mfcc_features.csv
+  output_path: /Users/noemiekt/Documents/MetaMicro/entrainement_avec_affichage/script/mfcc_features.csv
 correction_avant_classification:
   seuil_de_correction: 0.7
-  output_path: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/entrainement_avec_affichage/script/mfcc_features_marqueurs_corrige.csv
+  output_path: /Users/noemiekt/Documents/MetaMicro/entrainement_avec_affichage/script/mfcc_features_marqueurs_corrige.csv
 classification:
   if_suppression_mfcc:
     suppression_mfcc: false
@@ -38,8 +38,8 @@ classification:
     random_state: 42
     n_neighbors_max: 50
   outputs:
-    mean_X_output: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/entrainement_avec_affichage/script/mean_X.pkl
-    std_X_output: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/entrainement_avec_affichage/script/std_X.pkl
-    proj_pca_output: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/entrainement_avec_affichage/script/X_proj_scaled_marqueurs.csv
-    eigenvectors_output: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/entrainement_avec_affichage/script/eigenvectors_marqueurs.pkl
-    knn_model_output: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/entrainement_avec_affichage/script/knn_model.pkl
+    mean_X_output: /Users/noemiekt/Documents/MetaMicro/entrainement_avec_affichage/script/mean_X.csv
+    std_X_output: /Users/noemiekt/Documents/MetaMicro/entrainement_avec_affichage/script/std_X.csv
+    proj_pca_output: /Users/noemiekt/Documents/MetaMicro/entrainement_avec_affichage/script/X_proj_scaled_marqueurs.csv
+    eigenvectors_output: /Users/noemiekt/Documents/MetaMicro/entrainement_avec_affichage/script/eigenvectors_marqueurs.csv
+    knn_model_output: /Users/noemiekt/Documents/MetaMicro/entrainement_avec_affichage/script/knn_model.csv

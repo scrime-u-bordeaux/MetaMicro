@@ -39,10 +39,10 @@ def show_input_popup(title, prompt):
     popup.geometry("400x150")
     popup.grab_set()  # bloque la fenêtre principale
 
-    label = tk.Label(popup, text=prompt, font=button_font, bg="#2c3e50", fg="white")
+    label = tk.Label(popup, text=prompt, font=button_font, bg="#2c3e50", fg="black")
     label.pack(pady=10)
 
-    entry = tk.Entry(popup, font=button_font, bg="#34495e", fg="white", insertbackground="white")
+    entry = tk.Entry(popup, font=button_font, bg="#34495e", fg="black", insertbackground="black")
     entry.pack(pady=5, fill="x", padx=20)
 
     result = {}
@@ -57,8 +57,8 @@ def show_input_popup(title, prompt):
             show_warning("Vous devez entrer une valeur.")
 
     btn_ok = tk.Button(popup, text="Valider", font=button_font,
-                        bg="#6A4878", fg="white",
-                        activebackground="#8e44ad", activeforeground="white",
+                        bg="#6A4878", fg="black",
+                        activebackground="#8e44ad", activeforeground="black",
                         command=on_ok)
     btn_ok.pack(pady=10)
 
@@ -77,8 +77,8 @@ def show_warning(message):
     label.pack(pady=20)
 
     btn_ok = tk.Button(popup, text="OK", font=button_font,
-                       bg="#6A4878", fg="white",
-                       activebackground="#8e44ad", activeforeground="white",
+                       bg="#6A4878", fg="black",
+                       activebackground="#8e44ad", activeforeground="black",
                        command=popup.destroy)
     btn_ok.pack(pady=5)
 
@@ -96,8 +96,8 @@ def show_error(message):
     label.pack(pady=20)
 
     btn_ok = tk.Button(popup, text="OK", font=button_font,
-                       bg="#6A4878", fg="white",
-                       activebackground="#8e44ad", activeforeground="white",
+                       bg="#6A4878", fg="black",
+                       activebackground="#8e44ad", activeforeground="black",
                        command=popup.destroy)
     btn_ok.pack(pady=5)
 
@@ -111,7 +111,7 @@ def show_yes_no(title, message):
     popup.geometry("400x150")
     popup.grab_set()
 
-    label = tk.Label(popup, text=message, font=button_font, bg="#2c3e50", fg="white")
+    label = tk.Label(popup, text=message, font=button_font, bg="#2c3e50", fg="black")
     label.pack(pady=20)
 
     result = {"choice": None}
@@ -126,14 +126,14 @@ def show_yes_no(title, message):
         popup.destroy()
 
     btn_yes = tk.Button(popup, text="Oui", font=button_font,
-                        bg="#27ae60", fg="white",
-                        activebackground="#229954", activeforeground="white",
+                        bg="#27ae60", fg="black",
+                        activebackground="#229954", activeforeground="black",
                         command=on_yes)
     btn_yes.pack(side="left", padx=30, pady=10, expand=True)
 
     btn_no = tk.Button(popup, text="Non", font=button_font,
-                       bg="#c0392b", fg="white",
-                       activebackground="#a93226", activeforeground="white",
+                       bg="#c0392b", fg="black",
+                       activebackground="#a93226", activeforeground="black",
                        command=on_no)
     btn_no.pack(side="right", padx=30, pady=10, expand=True)
 
@@ -280,31 +280,31 @@ frame.pack(pady=10)
 
 # Bouton pour choisir les lettres
 btn_letters = tk.Button(frame, text="Choisir les lettres", command=select_letters, font=button_font,
-                        bg="#6A4878", fg="white", activebackground="#8e44ad", activeforeground="white",
+                        bg="#6A4878", fg="black", activebackground="#8e44ad", activeforeground="black",
                         bd=0, padx=10, pady=5)
 btn_letters.pack(fill="x", pady=5)
 
 # Bouton pour choisir l'audio ou l'enregistrement
 btn_audio = tk.Button(frame, text="Choisir Audio ou Enregistrement", command=choose_audio_or_record, font=button_font,
-                      bg="#6A4878", fg="white", activebackground="#8e44ad", activeforeground="white",
+                      bg="#6A4878", fg="black", activebackground="#8e44ad", activeforeground="black",
                       bd=0, padx=10, pady=5)
 btn_audio.pack(fill="x", pady=5)
 
 # Bouton pour lancer la concaténation des fichiers
 btn_concat = tk.Button(frame, text="Concaténer les fichiers", command=concatenate_files, font=button_font,
-                       bg="#6A4878", fg="white", activebackground="#8e44ad", activeforeground="white",
+                       bg="#6A4878", fg="black", activebackground="#8e44ad", activeforeground="black",
                        bd=0, padx=10, pady=5)
 btn_concat.pack(fill="x", pady=5)
 
 # Bouton pour lancer les scripts Python
 btn_scripts = tk.Button(frame, text="Lancer le scripts complet", command=launch_scripts, font=button_font,
-                         bg="#6A4878", fg="white", activebackground="#8e44ad", activeforeground="white",
+                         bg="#6A4878", fg="black", activebackground="#8e44ad", activeforeground="black",
                          bd=0, padx=10, pady=5)
 btn_scripts.pack(fill="x", pady=5)
 
 # Bouton pour ajouter le YAML au dossier
 btn_add_yaml = tk.Button(frame, text="Ajouter le YAML au dossier", command=add_yaml_to_folder, font=button_font,
-                         bg="#6A4878", fg="white", activebackground="#8e44ad", activeforeground="white",
+                         bg="#6A4878", fg="black", activebackground="#8e44ad", activeforeground="black",
                          bd=0, padx=10, pady=5)
 btn_add_yaml.pack(fill="x", pady=5)
 
@@ -315,7 +315,7 @@ text_log = tk.Text(
     width=70, 
     bg="#1e272e", 
     fg="#b086c0",
-    insertbackground="white", 
+    insertbackground="black", 
     font=log_font, 
     bd=2, 
     relief="sunken"

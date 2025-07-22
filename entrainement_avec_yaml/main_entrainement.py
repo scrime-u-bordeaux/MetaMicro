@@ -168,7 +168,7 @@ print(f"Fichier YAML mis à jour avec les chemins complétés : {yaml_path}")
 # LANCEMENT DES SCRIPTS PYTHON
 # Ordre d'exécution
 time.sleep(1)
-# run_script("calcul_mfcc_yaml.py")
+run_script("calcul_mfcc_yaml.py")
 run_script("correction_avant_classification_yaml.py")
 run_script("classification_yaml.py")
 

@@ -140,7 +140,7 @@ else:
 print(f"Fichier corrigé sauvegardé dans '{std_X_output}'")
 
 # Calcul de la matrice de covariance
-cov_matrix = np.cov(X_scaled.T)
+cov_matrix = np.dot(X_scaled.T, X_scaled) / (X_scaled.shape[0] - 1)
 
 # Calcul des valeurs et vecteurs propres
 eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)

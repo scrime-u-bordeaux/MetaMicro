@@ -57,15 +57,15 @@ def record_audio():
     )
     audio_frames = []
 
-     # Instructions pour l'utilisateur
-    log("Bonjour !")
-    time.sleep(4)
-    log("Je vais vous demander de prononcer 3 voyelles en soufflant.")
-    time.sleep(4)
-    log("Prononcez 'a', 'i' et 'ou' à tour de rôle quand vous verrez 'go' jusqu'à ce que je vous dise 'stop'.")
-    time.sleep(5)
-    log("Vous êtes prêt ?")
-    time.sleep(2)
+    # # Instructions pour l'utilisateur
+    # log("Bonjour !")
+    # time.sleep(4)
+    # log("Je vais vous demander de prononcer 3 voyelles en soufflant.")
+    # time.sleep(4)
+    # log("Prononcez 'a', 'i' et 'ou' à tour de rôle quand vous verrez 'go' jusqu'à ce que je vous dise 'stop'.")
+    # time.sleep(5)
+    # log("Vous êtes prêt ?")
+    # time.sleep(2)
 
     # Enregistrement en continu avec consignes
     letters = config["calcul_mfcc"]["letters"] * 3
@@ -75,9 +75,9 @@ def record_audio():
         countdown(3)
         log("Enregistrement en cours…")
 
-        duration = 9  # secondes
+        duration = 5  # secondes
         for i in range(0, int(RATE / CHUNK * duration)):
-            data = stream.read(CHUNK)
+            data = stream.read(CHUNK, exception_on_overflow=False)
             audio_frames.append(data)
             progress_var.set((i + 1) / (RATE / CHUNK * duration) * 100)
             root.update_idletasks()
@@ -102,8 +102,8 @@ def countdown(seconds):
 def ask_save_file(audio_frames, p, default_path):
     # Boîte de dialogue pour choisir le fichier
     file_path = filedialog.asksaveasfilename(
-        defaultextension=".csv" if default_path.endswith(".csv") else ".pkl",
-        filetypes=[("Fichiers CSV", "*.csv"), ("Fichiers Joblib", "*.pkl")],
+        defaultextension=".wav" if default_path.endswith(".wav") else ".pkl",
+        filetypes=[("Fichiers WAV", "*.wav"), ("Fichiers Joblib", "*.pkl")],
         initialfile=os.path.basename(default_path),
         title="Sauvegarder le fichier sous…"
     )
@@ -163,9 +163,9 @@ record_button = tk.Button(
     command=start_recording,
     font=button_font,
     bg="#6A4878",
-    fg="white",
+    fg="black",
     activebackground="#8e44ad",
-    activeforeground="white",
+    activeforeground="black",
     bd=0,
     padx=10,
     pady=5
@@ -184,7 +184,7 @@ text_log = tk.Text(
     width=60,
     bg="#1e272e",
     fg="#b086c0",
-    insertbackground="white",
+    insertbackground="black",
     font=log_font,
     bd=2,
     relief="sunken"

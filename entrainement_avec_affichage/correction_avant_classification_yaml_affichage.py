@@ -138,7 +138,7 @@ frame.pack(pady=10)
 seuil_var = tk.DoubleVar(value=seuil_de_correction)
 
 # Label dynamique pour la valeur du seuil
-seuil_value_label = tk.Label(frame, text=f"Seuil : {seuil_de_correction:.2f}", font=button_font, bg="#34495e", fg="white")
+seuil_value_label = tk.Label(frame, text=f"Seuil : {seuil_de_correction:.2f}", font=button_font, bg="#34495e", fg="black")
 seuil_value_label.pack(pady=(0, 5))
 
 seuil_slider = ttk.Scale(
@@ -158,9 +158,9 @@ start_button = tk.Button(
     command=start_correction,
     font=button_font,
     bg="#6A4878",
-    fg="white",
+    fg="black",
     activebackground="#8e44ad",
-    activeforeground="white",
+    activeforeground="black",
     bd=0,
     padx=10,
     pady=5
@@ -179,7 +179,7 @@ text_log = tk.Text(
     width=70,
     bg="#1e272e",
     fg="#b086c0",
-    insertbackground="white",
+    insertbackground="black",
     font=log_font,
     bd=2,
     relief="sunken"

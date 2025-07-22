@@ -8,6 +8,7 @@ from itertools import combinations
 import os
 import threading
 from tkinter import font, ttk
+import script.modif_libro.spectral as spectral  
 
 ##########################################################################################
 # CHARGER YAML
@@ -145,7 +146,7 @@ def compute_mfcc():
 
             if len(block) == block_size:
                 # 1. Calculer les MFCC
-                mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs, n_mfcc=n_mfcc,
+                mfcc = spectral.mfcc(y=block.astype(float), sr=fs, n_mfcc=n_mfcc,
                                             n_fft=n_fft_local, win_length=n_fft_local, hop_length=n_fft_local // 10,
                                             fmax=fs/2, mel_basis=mel_basis)
                 
@@ -243,9 +244,9 @@ start_button = tk.Button(
     command=start_mfcc,
     font=button_font,
     bg="#6A4878",
-    fg="white",
+    fg="black",
     activebackground="#8e44ad",
-    activeforeground="white",
+    activeforeground="black",
     bd=0,
     padx=10,
     pady=5
@@ -263,7 +264,7 @@ progress_label = tk.Label(
     text="0%",  # Initialisation du pourcentage à 0%
     font=button_font,
     bg="#34495e",
-    fg="white"
+    fg="black"
 )
 progress_label.pack(pady=5)
 
@@ -274,7 +275,7 @@ text_log = tk.Text(
     width=70,
     bg="#1e272e",
     fg="#b086c0",
-    insertbackground="white",
+    insertbackground="black",
     font=log_font,
     bd=2,
     relief="sunken"
