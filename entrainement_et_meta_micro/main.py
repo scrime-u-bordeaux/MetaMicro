@@ -29,7 +29,7 @@ btn_train = tk.Button(root, text="Entraînement MetaMicro", font=button_font, co
 btn_train.pack(pady=10, fill="x", padx=40)
 
 btn_test = tk.Button(root, text="Tester MetaMicro", font=button_font, command=tester_metamicro,
-                     bg="#2980b9", fg="blackg", activebackground="#3498db", padx=10, pady=10)
+                     bg="#2980b9", fg="black", activebackground="#3498db", padx=10, pady=10)
 btn_test.pack(pady=10, fill="x", padx=40)
 
 # Boucle principale

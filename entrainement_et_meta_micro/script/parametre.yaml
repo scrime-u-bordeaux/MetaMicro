@@ -2,12 +2,12 @@ calcul_mfcc:
   letters:
   - a
   - i
-  file_path_ta: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/ta_ti_i.wav
-  file_path_ta_text: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/ta_ti_i.txt
+  file_path_ta: ta_ti_i.wav
+  file_path_ta_text: ta_ti_i.txt
   file_path_txt_non_concat: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.txt
-  file_path_txt: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/text.txt
+  file_path_txt: text.txt
   file_path_audio_non_concat: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.wav
-  file_path_audio: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/audio.wav
+  file_path_audio: audio.wav
   time_of_block: 0.005
   recouvrement_block: 0.5
   pamatres_mfcc:
@@ -46,7 +46,7 @@ classification:
 main_respiro:
   port_name_respiro: IAC Driver Bus 1 Bus 1
   port_name_midifile: IAC Driver Bus 1 Bus 2
-  rms_max: 551.216637827798
+  rms_max: 1173.0243836107818
   CHANNEL_RESPIRO: 0
   CC_rms: 2
   CC_i: 9

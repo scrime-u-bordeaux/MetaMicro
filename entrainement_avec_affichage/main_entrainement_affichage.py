@@ -200,8 +200,6 @@ def concatenate_files():
             # Concaténer les deux fichiers audio
             concatenated_audio = audio1 + audio2
             concatenated_audio.export(output_audio, format="wav")
-        else:
-            log(f"Le fichier audio {output_audio} existe déjà, pas de création.")
 
         # Créer le fichier text.txt seulement s'il n'existe pas
         if not os.path.exists(output_text):
@@ -218,8 +216,6 @@ def concatenate_files():
 
             # Mettre à jour le YAML
             ensure_path(config["calcul_mfcc"], "file_path_txt", output_text)
-        else:
-            log(f"Le fichier texte {output_text} existe déjà, pas de création.")
 
         # Réécrire le YAML une seule fois
         with open(yaml_path, "w", encoding="utf-8") as f:

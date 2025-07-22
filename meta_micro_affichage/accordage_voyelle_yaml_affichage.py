@@ -599,7 +599,7 @@ def audio_loop():
                                 # Calcul des distances aux centroïdes
                                 distances_to_centroids = {                            
                                     label: np.linalg.norm(batch_center - centroids[label])
-                                    for label in ["A", "I", "T", "S"]                        
+                                    for label in [l.upper() for l in letters_with_st]
                                     }
 
                                 min_dist = min(distances_to_centroids.values())
@@ -713,7 +713,7 @@ def audio_loop():
                             majority_label == label_mapping["t"]
                             and len(majority_label_prec) == n_label_for_use_remplacer_t_par_i
                             and all(lbl == label_mapping["t"] for lbl in majority_label_prec)
-                        ):g
+                        ):
                             majority_label = Label.I.value
 
                     mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction

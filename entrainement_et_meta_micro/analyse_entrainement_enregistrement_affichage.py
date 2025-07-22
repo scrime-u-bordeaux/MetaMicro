@@ -62,15 +62,15 @@ def analyse_audio():
 
         # Fenêtres d'origine
         timestamps = [
-            (4, 10), 
-            (15, 20), 
-            (24, 28), 
-            (33, 37),
-            (42, 46), 
-            (50, 55), 
-            (60, 65), 
-            (69, 73), 
-            (78, None)
+            (0, 5), 
+            (5.1, 10), 
+            (10.1, 15), 
+            (15.1, 20),
+            (20.1, 25), 
+            (25.1, 30), 
+            (30.1, 35), 
+            (35.1, 40), 
+            (40.1, None)
         ]
 
         # Lettres associées
@@ -83,7 +83,7 @@ def analyse_audio():
         # Création des marqueurs
         log("Détection des marqueurs…")
         markers = []
-        active = rms > mean_rms
+        active = rms > 0
 
         file_path_ta = config["calcul_mfcc"]["file_path_ta"]
         with wave.open(file_path_ta, "rb") as wav_file:

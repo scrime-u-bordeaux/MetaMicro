@@ -2,12 +2,12 @@ calcul_mfcc:
   letters:
   - a
   - i
-  file_path_ta: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/ta_ti_i.wav
-  file_path_ta_text: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/ta_ti_i.txt
+  file_path_ta: ta_ti_i.wav
+  file_path_ta_text: ta_ti_i.txt
   file_path_txt_non_concat: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.txt
-  file_path_txt: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/text.txt
+  file_path_txt: text.txt
   file_path_audio_non_concat: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.wav
-  file_path_audio: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/audio.wav
+  file_path_audio: audio.wav
   time_of_block: 0.005
   recouvrement_block: 0.5
   pamatres_mfcc:
@@ -43,27 +43,3 @@ classification:
     proj_pca_output: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/X_proj_scaled_marqueurs.csv
     eigenvectors_output: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/eigenvectors_marqueurs.csv
     knn_model_output: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/knn_model.csv
-main_respiro:
-  port_name_respiro: IAC Driver Bus 1 Bus 1
-  port_name_midifile: IAC Driver Bus 1 Bus 2
-  rms_max: 551.216637827798
-  CHANNEL_RESPIRO: 0
-  CC_rms: 2
-  CC_i: 9
-  CC_u: 14
-  CC_a: 15
-  midi_file: midi/Etude 1.mid
-  enregistrement_audio: audio/recorded.wav
-  CHANNELS: 1
-  RATE: 44100
-  batch_size: 6
-  recouvrement: 3
-  radius: 10
-  k: 3
-  other_params:
-    vide_if_n_label:
-      value: true
-      n: 2
-    remplacer_t_par_i:
-      value: false
-      n: 5

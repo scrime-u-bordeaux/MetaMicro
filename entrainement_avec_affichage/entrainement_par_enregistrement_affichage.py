@@ -53,7 +53,8 @@ def record_audio():
         channels=CHANNELS,
         rate=RATE,
         input=True,
-        frames_per_buffer=CHUNK
+        output_device_index=4,
+        frames_per_buffer=CHUNK,
     )
     audio_frames = []
 
