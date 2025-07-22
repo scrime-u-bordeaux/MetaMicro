@@ -1,0 +1,69 @@
+calcul_mfcc:
+  letters:
+  - a
+  - i
+  file_path_ta: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/ta_ti_i.wav
+  file_path_ta_text: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/ta_ti_i.txt
+  file_path_txt_non_concat: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.txt
+  file_path_txt: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/text.txt
+  file_path_audio_non_concat: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.wav
+  file_path_audio: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/audio.wav
+  time_of_block: 0.005
+  recouvrement_block: 0.5
+  pamatres_mfcc:
+    n_mfcc: 13
+    n_fft: 512
+    n_mels: 40
+  other_params:
+    delta_mfcc: false
+    zero_crossing: true
+    centroid: false
+    slope: true
+  output_path: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mfcc_features.csv
+correction_avant_classification:
+  seuil_de_correction: 0.7
+  output_path: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mfcc_features_marqueurs_corrige.csv
+classification:
+  if_suppression_mfcc:
+    suppression_mfcc: false
+    seuil_pour_mfcc_max: 0.45
+    eigenvectors_output: null
+    eigenvectors_output_tronque: null
+  dimension_affichage:
+  - 0
+  - 1
+  - 2
+  parametres_knn:
+    test_size: 0.4
+    random_state: 42
+    n_neighbors_max: 50
+  outputs:
+    mean_X_output: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mean_X.pkl
+    std_X_output: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/std_X.pkl
+    proj_pca_output: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/X_proj_scaled_marqueurs.csv
+    eigenvectors_output: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/eigenvectors_marqueurs.pkl
+    knn_model_output: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/knn_model.pkl
+main_respiro:
+  port_name_respiro: Midi Through:Midi Through Port-0 14:0
+  port_name_midifile: Midi Through:Midi Through Port-0 14:0
+  rms_max: 1173.0243836107818
+  CHANNEL_RESPIRO: 0
+  CC_rms: 2
+  CC_i: 9
+  CC_u: 14
+  CC_a: 15
+  midi_file: midi/Etude 1.mid
+  enregistrement_audio: audio/recorded.wav
+  CHANNELS: 1
+  RATE: 44100
+  batch_size: 6
+  recouvrement: 3
+  radius: 10
+  k: 3
+  other_params:
+    vide_if_n_label:
+      value: true
+      n: 2
+    remplacer_t_par_i:
+      value: true
+      n: 5
