@@ -1,11 +1,19 @@
+
 audioread==3.0.1
+# paudioread==3.0.1
 joblib==1.4.2
 librosa==0.11.0
 matplotlib
 mido==1.3.3
 numpy
 pandas
+<<<<<<< HEAD
 PyAudio==0.2.14
+=======
+pyaudio
+>>>>>>> mac_portable
 pyfluidsynth==1.3.4
 scikit-learn
 scipy
+python-rtmidi
+plotly
