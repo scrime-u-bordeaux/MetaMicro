@@ -4,6 +4,7 @@ import numpy as np
 import yaml
 from itertools import combinations
 import os
+import scripts.modif_libro.spectral as spectral
 
 ##########################################################################################
 # CHARGER YAML
@@ -123,7 +124,7 @@ for i, start in enumerate(range(0, len(signal), recouvrement)):
 
     if len(block) == block_size:
         # 1. Calculer les MFCC
-        mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs, n_mfcc=n_mfcc,
+        mfcc = spectram.mfcc(y=block.astype(float), sr=fs, n_mfcc=n_mfcc,
                                     n_fft=n_fft, win_length=n_fft, hop_length=n_fft // 10,
                                     fmax=fs/2, mel_basis=mel_basis)
         features = [mfcc.flatten()]

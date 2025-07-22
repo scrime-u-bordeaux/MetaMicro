@@ -2,14 +2,12 @@ calcul_mfcc:
   letters:
   - a
   - i
-  - u
-  - n
-  file_path_ta: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/ta_ti_i.wav
-  file_path_ta_text: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/ta_ti_i.txt
-  file_path_txt_non_concat: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/mon_fichier.txt
-  file_path_txt: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/text.txt
-  file_path_audio_non_concat: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/mon_fichier.wav
-  file_path_audio: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/audio.wav
+  file_path_ta: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/ta_ti_i.wav
+  file_path_ta_text: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/ta_ti_i.txt
+  file_path_txt_non_concat: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/mon_fichier.txt
+  file_path_txt: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/text.txt
+  file_path_audio_non_concat: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/mon_fichier.wav
+  file_path_audio: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/audio.wav
   time_of_block: 0.005
   recouvrement_block: 0.5
   pamatres_mfcc:
@@ -21,10 +19,10 @@ calcul_mfcc:
     zero_crossing: true
     centroid: false
     slope: true
-  output_path: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/mfcc_features.csv
+  output_path: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/mfcc_features.csv
 correction_avant_classification:
   seuil_de_correction: 0.7
-  output_path: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/mfcc_features_marqueurs_corrige.csv
+  output_path: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/mfcc_features_marqueurs_corrige.csv
 classification:
   if_suppression_mfcc:
     suppression_mfcc: false
@@ -40,11 +38,11 @@ classification:
     random_state: 42
     n_neighbors_max: 50
   outputs:
-    mean_X_output: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/mean_X.pkl
-    std_X_output: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/std_X.pkl
-    proj_pca_output: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/X_proj_scaled_marqueurs.csv
-    eigenvectors_output: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/eigenvectors_marqueurs.pkl
-    knn_model_output: /home/noemie/Documents/enseirb/stage_scrime/MetaMicro/scripts/u_ta_la_ti_li_i_n/knn_model.pkl
+    mean_X_output: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/mean_X.pkl
+    std_X_output: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/std_X.pkl
+    proj_pca_output: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/X_proj_scaled_marqueurs.csv
+    eigenvectors_output: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/eigenvectors_marqueurs.pkl
+    knn_model_output: /home/scrimegael/Documents/MetaMicro/entrainement_avec_affichage/script/knn_model.pkl
 main_respiro:
   port_name_respiro: Midi Through:Midi Through Port-0 14:0
   port_name_midifile: Midi Through:Midi Through Port-0 14:0

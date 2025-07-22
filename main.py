@@ -21,7 +21,7 @@ import matplotlib
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
-# pactl set-default-source alsa_input.usb-Focusrite_Scarlett_4i4_USB_D89YRE90C17918-00.multichannel-input
+#   
 # pactl set-default-sink alsa_output.pci-0000_00_1f.3.analog-stereo
 
 ##########################################################################################

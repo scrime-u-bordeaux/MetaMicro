@@ -326,7 +326,6 @@ positions = [
     (0.8, 0.5),     # Droite
 ]
 
-letters = ["A", "I", "T", "S"]
 text_objects = []
 # Ajouter une zone de texte en bas pour l'historique
 history_text = ax.text(

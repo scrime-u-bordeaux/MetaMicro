@@ -8,6 +8,7 @@ from itertools import combinations
 import os
 import threading
 from tkinter import font, ttk
+import scripts.modif_libro.spectral as spectral
 
 ##########################################################################################
 # CHARGER YAML
@@ -145,7 +146,7 @@ def compute_mfcc():
 
             if len(block) == block_size:
                 # 1. Calculer les MFCC
-                mfcc = librosa.feature.mfcc(y=block.astype(float), sr=fs, n_mfcc=n_mfcc,
+                mfcc = spectral.mfcc(y=block.astype(float), sr=fs, n_mfcc=n_mfcc,
                                             n_fft=n_fft_local, win_length=n_fft_local, hop_length=n_fft_local // 10,
                                             fmax=fs/2, mel_basis=mel_basis)
                 

@@ -18,7 +18,7 @@ def log(message):
 # Fonction pour lancer les scripts Python
 def run_script(script_name):
     log(f"-> Lancement de : {script_name}")
-    result = subprocess.run(["python", script_name])
+    result = subprocess.run(["python3", script_name])
     if result.returncode != 0:
         log(f"Le script {script_name} a échoué (code {result.returncode}).")
         show_error(f"{script_name} a échoué.")
@@ -182,48 +182,35 @@ def concatenate_files():
         output_text = "text.txt"
 
         # Créer le fichier audio.wav si il n'existe pas
-        if not os.path.exists(output_audio):
-            log(f"Création du fichier audio : {output_audio}")
+        log(f"Création du fichier audio : {output_audio}")
 
-            audio1 = AudioSegment.from_file(file_audio_ta)
-            audio2 = AudioSegment.from_file(file_audio_non_concat)
+        audio1 = AudioSegment.from_file(file_audio_ta)
+        audio2 = AudioSegment.from_file(file_audio_non_concat)
 
-            # Vérifier la compatibilité des paramètres
-            if (audio1.frame_rate != audio2.frame_rate or
-                audio1.sample_width != audio2.sample_width or
-                audio1.channels != audio2.channels):
-                log("Conversion du second fichier audio pour correspondre au format du premier…")
-                audio2 = audio2.set_frame_rate(audio1.frame_rate)\
-                               .set_sample_width(audio1.sample_width)\
-                               .set_channels(audio1.channels)
+        # Vérifier la compatibilité des paramètres
+        if (audio1.frame_rate != audio2.frame_rate or
+            audio1.sample_width != audio2.sample_width or
+            audio1.channels != audio2.channels):
+            log("Conversion du second fichier audio pour correspondre au format du premier…")
+            audio2 = audio2.set_frame_rate(audio1.frame_rate)\
+                            .set_sample_width(audio1.sample_width)\
+                            .set_channels(audio1.channels)
 
-            # Concaténer les deux fichiers audio
-            concatenated_audio = audio1 + audio2
-            concatenated_audio.export(output_audio, format="wav")
-        else:
-            log(f"Le fichier audio {output_audio} existe déjà, pas de création.")
+        # Concaténer les deux fichiers audio
+        concatenated_audio = audio1 + audio2
+        concatenated_audio.export(output_audio, format="wav")
 
         # Créer le fichier text.txt seulement s'il n'existe pas
-        if not os.path.exists(output_text):
-            log(f"Création du fichier texte : {output_text}")
+        log(f"Création du fichier texte : {output_text}")
 
-            # Lire et concaténer les fichiers texte
-            with open(file_text_non_concat, "r", encoding="utf-8") as f1, \
-                 open(file_text_ta, "r", encoding="utf-8") as f2:
-                lines1 = f1.readlines()
-                lines2 = f2.readlines()
+        # Lire et concaténer les fichiers texte
+        with open(file_text_non_concat, "r", encoding="utf-8") as f1, \
+                open(file_text_ta, "r", encoding="utf-8") as f2:
+            lines1 = f1.readlines()
+            lines2 = f2.readlines()
 
-            with open(output_text, "w", encoding="utf-8") as out_txt:
-                out_txt.writelines(lines1 + lines2)
-
-            # Mettre à jour le YAML
-            ensure_path(config["calcul_mfcc"], "file_path_txt", output_text)
-        else:
-            log(f"Le fichier texte {output_text} existe déjà, pas de création.")
-
-        # Réécrire le YAML une seule fois
-        with open(yaml_path, "w", encoding="utf-8") as f:
-            yaml.dump(config, f, sort_keys=False, allow_unicode=True)
+        with open(output_text, "w", encoding="utf-8") as out_txt:
+            out_txt.writelines(lines1 + lines2)
 
         log("Concaténation terminée.")
     except Exception as e:
