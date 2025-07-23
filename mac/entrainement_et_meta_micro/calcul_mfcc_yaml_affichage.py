@@ -8,11 +8,11 @@ from itertools import combinations
 import os
 import threading
 from tkinter import font, ttk
-import script.modif_libro.spectral as spectral  
+import modif_libro.spectral as spectral  
 
 ##########################################################################################
 # CHARGER YAML
-yaml_path = "parametre.yaml"
+yaml_path = "mac/entrainement_et_meta_micro/parametre.yaml"
 with open(yaml_path, "r") as file:
     config = yaml.safe_load(file)
 

@@ -7,7 +7,7 @@ import librosa
 from scipy.signal import butter
 import mido  
 from enum import Enum
-import scripts.modif_libro.spectral as spectral     
+import modif_libro.spectral as spectral     
 import sys
 import wave
 from sklearn.neighbors import BallTree   
@@ -443,7 +443,6 @@ positions = [
     (0.8, 0.5),     # Droite
 ]
 
-letters = ["A", "I", "T", "S"]
 text_objects = []
 # Ajouter une zone de texte en bas pour l'historique
 history_text = ax.text(
@@ -505,7 +504,6 @@ def audio_loop():
             rms = np.sqrt(np.mean(audio_data.astype(np.float64) ** 2))
             if rms > rms_max:
                 rms_max = rms
-                print(rms_max)
             rms_clip = (rms - 0) / (rms_max - 0)
             rms_sqrt = np.tanh(1.6*rms_clip)
             midi_val_rms = rms_sqrt * 126
@@ -592,7 +590,7 @@ def audio_loop():
                             labels = y_ent[top_idxs]
                             pred = np.bincount(labels).argmax() # renvoie le label majoritaire                     
                             predictions_labels = label_mapping_reverse[pred]
-                            if predictions_labels in {"a", "i"}:
+                            if predictions_labels in letters:
                                 # Moyenne du batch projeté                       
                                 batch_center = df_mfcc_pca.mean(axis=0)
                                 # Calcul des distances aux centroïdes
@@ -766,33 +764,6 @@ audio_thread.join()
 stream.stop_stream()
 stream.close()
 p.terminate()
-
-##########################################################################################
-# AFFICHAGE COULEUR
-# Générer l'axe des temps
-time = np.linspace(0, len(frames) / fs, num=len(frames))
-
-# Dictionnaire de correspondance entre les prédictions et les couleurs
-colors = {1: "green", 2: "red", 3: "orange", 4: "purple"} # Si on utilise la correction avant
-
-# Création des timestamps cohérents avec le nombre de prédictions
-pas = CHUNK * batch_size / fs  
-time_values = np.arange(len(tab_pred)) * pas
-
-# Création du data aFrame principal avec labels
-df_predictions = pd.DataFrame({
-    "Time (s)": time_values,
-    "Label": tab_pred
-})
-plt.figure(figsize=(10, 4))
-
-# Enregistrer l'audio
-wf = wave.open(filename, "wb")
-wf.setnchannels(CHANNELS)
-wf.setsampwidth(p.get_sample_size(FORMAT))
-wf.setframerate(RATE)
-wf.writeframes(b"".join(audio_frames))
-wf.close()
 
 ########################################################################################
 # REAFFICHAGE PCA best comb

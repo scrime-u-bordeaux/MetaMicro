@@ -8,7 +8,7 @@ from itertools import combinations
 import os
 import threading
 from tkinter import font, ttk
-import scripts.modif_libro.spectral as spectral
+import modif_libro.spectral as spectral
 
 ##########################################################################################
 # CHARGER YAML

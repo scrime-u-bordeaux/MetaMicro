@@ -126,7 +126,7 @@ def full_classification_script():
         if save_path:
             joblib.dump(mean_X, save_path)
             config["classification"]["outputs"]["mean_X_output"] = save_path
-            with open("parametre.yaml", "w") as file:
+            with open("linux/entrainement_et_meta_micro/parametre.yaml", "w") as file:
                 yaml.dump(config, file, sort_keys=False, allow_unicode=True)
             log(f"Moyenne sauvegardée : {save_path}")
         else:
@@ -136,7 +136,7 @@ def full_classification_script():
         if save_path:
             joblib.dump(std_X, save_path)
             config["classification"]["outputs"]["std_X_output"] = save_path
-            with open("parametre.yaml", "w") as file:
+            with open("linux/entrainement_et_meta_micro/parametre.yaml", "w") as file:
                 yaml.dump(config, file, sort_keys=False, allow_unicode=True)
             log(f"Ecart-type sauvegardé : {save_path}")
         else:
@@ -272,7 +272,7 @@ def full_classification_script():
             df_proj_thresh["label"] = block_labels_text
             df_proj_thresh.to_csv(save_path, index=False)
             config["classification"]["outputs"]["proj_pca_output"] = save_path
-            with open("parametre.yaml", "w") as file:
+            with open("linux/entrainement_et_meta_micro/parametre.yaml", "w") as file:
                 yaml.dump(config, file, sort_keys=False, allow_unicode=True)
             log(f"Projection seuillée sauvegardée : {save_path}")
         else:
@@ -283,7 +283,7 @@ def full_classification_script():
         if save_path:
             joblib.dump(eigenvectors_thresholded[:, :best_n], save_path)
             config["classification"]["outputs"]["eigenvectors_output"] = save_path
-            with open("parametre.yaml", "w") as file:
+            with open("linux/entrainement_et_meta_micro/parametre.yaml", "w") as file:
                 yaml.dump(config, file, sort_keys=False, allow_unicode=True)
             log(f"Vecteurs propres seuillés sauvegardés : {save_path}")
         else:
@@ -340,7 +340,7 @@ def full_classification_script():
         if save_path:
             joblib.dump(knn, save_path)
             config["classification"]["outputs"]["knn_model_output"] = save_path
-            with open("parametre.yaml", "w") as file:
+            with open("linux/entrainement_et_meta_micro/parametre.yaml", "w") as file:
                 yaml.dump(config, file, sort_keys=False, allow_unicode=True)
             log(f"Moldèle KNN sauvegardée : {save_path}")
         else:

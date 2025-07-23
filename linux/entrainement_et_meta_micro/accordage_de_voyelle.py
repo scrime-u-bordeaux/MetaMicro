@@ -8,7 +8,7 @@ from scipy.signal import butter
 import mido  
 import fluidsynth  
 from enum import Enum
-import scripts.modif_libro.spectral as spectral  
+import modif_libro.spectral as spectral  
 from sklearn.neighbors import BallTree   
 from collections import Counter
 import csv
@@ -28,7 +28,7 @@ from matplotlib import pyplot as plt
 
 ##########################################################################################
 ## LECTURE DES PARAMÈTRES YAML
-with open("linux/entrainement_et_meta_micro/parametre.yaml", "r") as file:
+with open("parametre.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 main_respiro_param = config["main_respiro"]
@@ -444,7 +444,7 @@ def audio_loop():
                         labels = y_ent[top_idxs]
                         pred = np.bincount(labels).argmax() # renvoie le label majoritaire                     
                         predictions_labels = label_mapping_reverse[pred]
-                        if predictions_labels in {"a", "i"}:
+                        if predictions_labels in letters:
                             # Moyenne du batch projeté                       
                             batch_center = df_mfcc_pca.mean(axis=0)
                             # Calcul des distances aux centroïdes

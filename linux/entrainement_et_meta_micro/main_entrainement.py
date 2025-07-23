@@ -178,8 +178,8 @@ def concatenate_files():
         file_text_ta = config["calcul_mfcc"]["file_path_ta_text"]
         file_text_non_concat = config["calcul_mfcc"]["file_path_txt_non_concat"]
 
-        output_audio = "audio.wav"
-        output_text = "text.txt"
+        output_audio = config["calcul_mfcc"]["file_path_audio"]
+        output_text = config["calcul_mfcc"]["file_path_txt"]
 
         # Créer le fichier audio.wav
         log(f"Création du fichier audio : {output_audio}")
@@ -238,7 +238,7 @@ def launch_scripts():
 def add_yaml_to_folder():
     try:
         folder = os.path.dirname(config["calcul_mfcc"]["output_path"]) 
-        destination = os.path.join(folder, "linux/entrainement_et_meta_micro/parametre.yaml")
+        destination = os.path.join(folder, "parametre.yaml")
         shutil.copy(yaml_path, destination)
         
         log(f"Le fichier {yaml_path} a été copié dans {destination}")

@@ -8,7 +8,7 @@ from scipy.signal import butter
 import mido  
 import fluidsynth  
 from enum import Enum
-import scripts.modif_libro.spectral as spectral  
+import modif_libro.spectral as spectral  
 from sklearn.neighbors import BallTree   
 from collections import Counter
 import csv

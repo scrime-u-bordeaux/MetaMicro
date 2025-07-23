@@ -4,10 +4,10 @@ import subprocess
 
 # Lancement d'un script Python externe
 def lancer_entrainement():
-    subprocess.run(["python3", "main_entrainement.py"])
+    subprocess.run(["python3", "mac/entrainement_et_meta_micro/main_entrainement.py"])
 
 def tester_metamicro():
-    subprocess.run(["python3", "main_meta_micro.py"])
+    subprocess.run(["python3", "mac/entrainement_et_meta_micro/main_meta_micro.py"])
 
 # Création de la fenêtre principale
 root = tk.Tk()

@@ -10,7 +10,7 @@ from tkinter import font, ttk
 
 ##########################################################################################
 # CHARGER YAML
-yaml_path = "parametre.yaml"
+yaml_path = "mac/entrainement_et_meta_micro/parametre.yaml"
 with open(yaml_path, "r") as file:
     config = yaml.safe_load(file)
 
@@ -70,7 +70,15 @@ def analyse_audio():
             (25.1, 30), 
             (30.1, 35), 
             (35.1, 40), 
-            (40.1, None)
+            (40.1, 45),
+            (45.1, 50),
+            (50.1, 55),
+            (55.1, 60),
+            (60.1, 65),
+            (65.1, 70),
+            (70.1, 75),
+            (75.1, 80),
+            (80.1, 85),
         ]
 
         # Lettres associées

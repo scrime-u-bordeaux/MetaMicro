@@ -2,12 +2,12 @@ calcul_mfcc:
   letters:
   - a
   - i
-  file_path_ta: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/ta_ti_i.wav
-  file_path_ta_text: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/ta_ti_i.txt
-  file_path_txt_non_concat: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.txt
-  file_path_txt: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/text.txt
-  file_path_audio_non_concat: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.wav
-  file_path_audio: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/audio.wav
+  file_path_ta: mac/entrainement_et_meta_micro/ta_ti_i.wav
+  file_path_ta_text: mac/entrainement_et_meta_micro/ta_ti_i.txt
+  file_path_txt_non_concat: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/mon_fichier.txt
+  file_path_txt: mac/entrainement_et_meta_micro/text.txt
+  file_path_audio_non_concat: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/mon_fichier.wav
+  file_path_audio: mac/entrainement_et_meta_micro/audio.wav
   time_of_block: 0.005
   recouvrement_block: 0.5
   pamatres_mfcc:
@@ -19,10 +19,10 @@ calcul_mfcc:
     zero_crossing: true
     centroid: false
     slope: true
-  output_path: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/mfcc_features.csv
+  output_path: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/mfcc_features.csv
 correction_avant_classification:
   seuil_de_correction: 0.7
-  output_path: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/mfcc_features_marqueurs_corrige.csv
+  output_path: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/mfcc_features_marqueurs_corrige.csv
 classification:
   if_suppression_mfcc:
     suppression_mfcc: false
@@ -38,22 +38,22 @@ classification:
     random_state: 42
     n_neighbors_max: 50
   outputs:
-    mean_X_output: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/mean_X.csv
-    std_X_output: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/std_X.csv
-    proj_pca_output: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/X_proj_scaled_marqueurs.csv
-    eigenvectors_output: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/eigenvectors_marqueurs.csv
-    knn_model_output: /Users/noemiekt/Documents/MetaMicro/entrainement_et_meta_micro/script/knn_model.csv
+    mean_X_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/mean_X.csv
+    std_X_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/std_X.csv
+    proj_pca_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/X_proj_scaled_marqueurs.csv
+    eigenvectors_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/eigenvectors_marqueurs.csv
+    knn_model_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/knn_model.csv
 main_respiro:
   port_name_respiro: IAC Driver Bus 1 Bus 1
   port_name_midifile: IAC Driver Bus 1 Bus 2
-  rms_max: 551.216637827798
+  rms_max: 374.1106605853893
   CHANNEL_RESPIRO: 0
   CC_rms: 2
   CC_i: 9
   CC_u: 14
   CC_a: 15
-  midi_file: midi/Etude 1.mid
-  enregistrement_audio: audio/recorded.wav
+  midi_file: mac/entrainement_et_meta_micro/midi/Etude 1.mid
+  enregistrement_audio: mac/entrainement_et_meta_micro/audio/recorded.wav
   CHANNELS: 1
   RATE: 44100
   batch_size: 6

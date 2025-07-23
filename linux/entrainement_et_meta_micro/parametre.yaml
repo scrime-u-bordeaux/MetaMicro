@@ -2,12 +2,12 @@ calcul_mfcc:
   letters:
   - a
   - i
-  file_path_ta: ta_ti_i.wav
-  file_path_ta_text: ta_ti_i.txt
+  file_path_ta: linux/entrainement_et_meta_micro/ta_ti_i.wav
+  file_path_ta_text: linux/entrainement_et_meta_micro/ta_ti_i.txt
   file_path_txt_non_concat: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.txt
-  file_path_txt: text.txt
+  file_path_txt: linux/entrainement_et_meta_micro/text.txt
   file_path_audio_non_concat: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.wav
-  file_path_audio: audio.wav
+  file_path_audio: linux/entrainement_et_meta_micro/audio.wav
   time_of_block: 0.005
   recouvrement_block: 0.5
   pamatres_mfcc:
@@ -52,8 +52,8 @@ main_respiro:
   CC_i: 9
   CC_u: 14
   CC_a: 15
-  midi_file: midi/Etude 1.mid
-  enregistrement_audio: audio/recorded.wav
+  midi_file: linux/entrainement_et_meta_micro/midi/Etude 1.mid
+  enregistrement_audio: linux/entrainement_et_meta_micro/audio/recorded.wav
   CHANNELS: 1
   RATE: 44100
   batch_size: 6
