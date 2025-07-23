@@ -28,7 +28,7 @@ from matplotlib import pyplot as plt
 
 ##########################################################################################
 ## LECTURE DES PARAMÈTRES YAML
-with open("parametre.yaml", "r") as file:
+with open("linux/entrainement_et_meta_micro/parametre.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 main_respiro_param = config["main_respiro"]

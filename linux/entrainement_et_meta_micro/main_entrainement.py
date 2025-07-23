@@ -156,9 +156,9 @@ def select_letters():
 def choose_audio_or_record():
     choice = show_yes_no("Choix audio", "Voulez-vous enregistrer un fichier audio ?")
     if choice:
-        if run_script("entrainement_par_enregistrement_affichage.py"):
+        if run_script("linux/entrainement_et_meta_micro/entrainement_par_enregistrement_affichage.py"):
             reload_yaml()
-        if run_script("analyse_entrainement_enregistrement_affichage.py"):
+        if run_script("linux/entrainement_et_meta_micro/analyse_entrainement_enregistrement_affichage.py"):
             reload_yaml()
     else:
         audio_path = filedialog.askopenfilename(title="Sélectionnez un fichier audio")
@@ -230,15 +230,15 @@ def reload_yaml():
 
 # Fonction pour lancer les fonctions python
 def launch_scripts():
-    if run_script("calcul_mfcc_yaml_affichage.py"):
-        if run_script("correction_avant_classification_yaml_affichage.py"):
-            run_script("classification_yaml_affichage.py")
+    if run_script("linux/entrainement_et_meta_micro/calcul_mfcc_yaml_affichage.py"):
+        if run_script("linux/entrainement_et_meta_micro/correction_avant_classification_yaml_affichage.py"):
+            run_script("linux/entrainement_et_meta_micro/classification_yaml_affichage.py")
 
 # Fonction pour ajouter le YAML au dossier
 def add_yaml_to_folder():
     try:
         folder = os.path.dirname(config["calcul_mfcc"]["output_path"]) 
-        destination = os.path.join(folder, "parametre.yaml")
+        destination = os.path.join(folder, "linux/entrainement_et_meta_micro/parametre.yaml")
         shutil.copy(yaml_path, destination)
         
         log(f"Le fichier {yaml_path} a été copié dans {destination}")
@@ -310,7 +310,7 @@ text_log = tk.Text(
 text_log.pack(pady=10)
 
 # Charger YAML
-yaml_path = "parametre.yaml"
+yaml_path = "linux/entrainement_et_meta_micro/parametre.yaml"
 with open(yaml_path, "r") as f:
     config = yaml.safe_load(f)
 
