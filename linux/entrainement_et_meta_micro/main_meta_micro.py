@@ -8,7 +8,7 @@ import mido
 
 ##########################################################################################
 # CHARGER YAML
-yaml_path = "parametre.yaml"
+yaml_path = "linux/entrainement_et_meta_micro/parametre.yaml"
 with open(yaml_path, "r") as file:
     config = yaml.safe_load(file)
 
@@ -50,7 +50,7 @@ def update_paths_in_yaml(base_dir):
         return os.path.join(base_dir, filename)
 
     # Mettre à jour les chemins
-    for section in ["calcul_mfcc", "correction_avant_classification", "classification"]:
+    for section in ["correction_avant_classification", "classification"]:
         for key in config[section]:
             if isinstance(config[section][key], str):
                 config[section][key] = update_path(config[section][key])
@@ -338,7 +338,7 @@ script_title.pack()
 btn_rms = tk.Button(
     script_frame,
     text="Jouer avec l'accordeur de voyelle",
-    command=lambda: run_script("accordage_de_voyelle.py"),
+    command=lambda: run_script("linux/entrainement_et_meta_micro/accordage_de_voyelle.py"),
     font=button_font,
     bg="#2980b9",
     fg="black",
@@ -353,7 +353,7 @@ btn_rms.pack(fill="x", pady=5)
 btn_accordeur = tk.Button(
     script_frame,
     text="Jouer sans accordeur avec midifile",
-    command=lambda: run_script("calcul_mfcc_midifile.py"),
+    command=lambda: run_script("linux/entrainement_et_meta_micro/calcul_mfcc_midifile.py"),
     font=button_font,
     bg="#8e44ad",
     fg="black",
@@ -368,7 +368,7 @@ btn_accordeur.pack(fill="x", pady=5)
 btn_respiro = tk.Button(
     script_frame,
     text="Jouer sans accordage",
-    command=lambda: run_script("calcul_mfcc.py"),
+    command=lambda: run_script("linux/entrainement_et_meta_micro/calcul_mfcc.py"),
     font=button_font,
     bg="#16a085",
     fg="black",

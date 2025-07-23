@@ -2,12 +2,12 @@ calcul_mfcc:
   letters:
   - a
   - i
-  file_path_ta: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/ta_ti_i.wav
-  file_path_ta_text: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/ta_ti_i.txt
+  file_path_ta: ta_ti_i.wav
+  file_path_ta_text: ta_ti_i.txt
   file_path_txt_non_concat: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.txt
-  file_path_txt: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/text.txt
+  file_path_txt: text.txt
   file_path_audio_non_concat: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mon_fichier.wav
-  file_path_audio: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/audio.wav
+  file_path_audio: audio.wav
   time_of_block: 0.005
   recouvrement_block: 0.5
   pamatres_mfcc:
@@ -22,7 +22,7 @@ calcul_mfcc:
   output_path: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mfcc_features.csv
 correction_avant_classification:
   seuil_de_correction: 0.7
-  output_path: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mfcc_features_marqueurs_corrige.csv
+  output_path: /home/scrimegael/Documents/MetaMicro/linux/entrainement_et_meta_micro/script/mfcc_features_marqueurs_corrige.csv
 classification:
   if_suppression_mfcc:
     suppression_mfcc: false
@@ -38,11 +38,11 @@ classification:
     random_state: 42
     n_neighbors_max: 50
   outputs:
-    mean_X_output: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/mean_X.pkl
-    std_X_output: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/std_X.pkl
-    proj_pca_output: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/X_proj_scaled_marqueurs.csv
-    eigenvectors_output: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/eigenvectors_marqueurs.pkl
-    knn_model_output: /home/scrimegael/Documents/MetaMicro/entrainement_et_meta_micro/script/knn_model.pkl
+    mean_X_output: /home/scrimegael/Documents/MetaMicro/linux/entrainement_et_meta_micro/script/mean_X.pkl
+    std_X_output: /home/scrimegael/Documents/MetaMicro/linux/entrainement_et_meta_micro/script/std_X.pkl
+    proj_pca_output: /home/scrimegael/Documents/MetaMicro/linux/entrainement_et_meta_micro/script/X_proj_scaled_marqueurs.csv
+    eigenvectors_output: /home/scrimegael/Documents/MetaMicro/linux/entrainement_et_meta_micro/script/eigenvectors_marqueurs.pkl
+    knn_model_output: /home/scrimegael/Documents/MetaMicro/linux/entrainement_et_meta_micro/script/knn_model.pkl
 main_respiro:
   port_name_respiro: Midi Through:Midi Through Port-0 14:0
   port_name_midifile: Midi Through:Midi Through Port-0 14:0
