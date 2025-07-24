@@ -24,6 +24,7 @@ import matplotlib
 import time
 import sys
 import os
+import fluidsynth
 
 ##########################################################################################
 ## LECTURE DES PARAMÈTRES YAML
@@ -106,8 +107,22 @@ n_label_for_if_vide = other_params_main_respiro["vide_if_n_label"].get("n", Fals
 use_remplacer_t_par_i = other_params_main_respiro["remplacer_t_par_i"].get("value", False)
 n_label_for_use_remplacer_t_par_i = other_params_main_respiro["remplacer_t_par_i"].get("n", False)
 
+canal_midi = config["main_respiro"]["canal_midi_sans_respiro"]
+instrument = config["main_respiro"]["instrument_sans_respiro"]
+
+if_fluidsythn = config["main_respiro"]["fluidsynth"]
 ##########################################################################################
 # INITIALISATION ET CHARGEMENT DES DONNEES
+
+# Initialiser FluidSynth avec une soundfont
+if if_fluidsythn:
+    sf2_path = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+    if os.path.exists(sf2_path):
+        fluid = fluidsynth.Synth()
+        fluid.start()
+        sfid = fluid.sfload(sf2_path)
+        fluid.program_select(canal_midi, sfid, 0, instrument)
+
 # Tronquer mean et std
 block_size = 11
 
@@ -302,12 +317,20 @@ def handle_event(event_type):
             note_stack.append(note)
             midi_out.send(mido.Message('note_on', note = note.note, velocity=note.velocity))
             port2.send(mido.Message('note_on', note = note.note, velocity=note.velocity))
+            if if_fluidsythn:
+                sf2_path = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+                if os.path.exists(sf2_path):
+                    fluid.noteon(0, note.note, note.velocity)
             note_pointer += 1
     elif event_type == "OFF":
         if note_stack:
             note_to_off = note_stack.pop(0)
             midi_out.send(mido.Message('note_off', note = note_to_off.note))
             port2.send(mido.Message('note_off', note = note_to_off.note))
+            if if_fluidsythn:
+                sf2_path = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+                if os.path.exists(sf2_path):
+                    fluid.noteoff(0, note_to_off.note)
 
 ##########################################################################################
 # PRISE DU FLUX AUDIO EN TEMPS REEL
@@ -768,6 +791,10 @@ def audio_loop():
         stream.stop_stream()
         stream.close()
         p.terminate()
+        if if_fluidsythn:
+            sf2_path = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+            if os.path.exists(sf2_path):
+                fluid.delete()
         print("Flux audio arrêté.")
 
 audio_thread = threading.Thread(target=audio_loop)
@@ -782,6 +809,10 @@ audio_thread.join()
 stream.stop_stream()
 stream.close()
 p.terminate()
+if if_fluidsythn:
+    sf2_path = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+    if os.path.exists(sf2_path):
+        fluid.delete()
 
 ########################################################################################
 # REAFFICHAGE PCA best comb

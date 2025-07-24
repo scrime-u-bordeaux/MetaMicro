@@ -124,7 +124,7 @@ if if_fluidsythn:
     fluid = fluidsynth.Synth()
     fluid.start()
     sfid = fluid.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")  
-    fluid.program_select(canal_midi, sfid, 0, instrument)# INITIALISATION ET CHARGEMENT DES DONNEES
+    fluid.program_select(canal_midi, sfid, 0, instrument)
 
 # Tronquer mean et std
 block_size = 11
