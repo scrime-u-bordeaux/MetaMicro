@@ -9,7 +9,7 @@ pyaudio
 pyfluidsynth
 scikit-learn
 scipy
-python-rtmidi; sys_platform == "linux"
+python-rtmidi
 plotly
 pydub
 pyyaml
