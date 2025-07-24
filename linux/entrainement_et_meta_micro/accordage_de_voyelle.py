@@ -54,14 +54,33 @@ main_respiro_param = config["main_respiro"]
 # Lettres
 letters = config["calcul_mfcc"]["letters"]
 letters_with_st = letters + [l for l in ["s", "t"] if l not in letters]
+
 # Parametres mfcc
 mfcc_params = config["calcul_mfcc"]["pamatres_mfcc"]
 n_mfcc = mfcc_params["n_mfcc"]
 n_fft = mfcc_params["n_fft"]
 n_mels = mfcc_params["n_mels"]
 
+# Port pour midifile
+port_name_midifile = main_respiro_param["port_name_midifile"]
+port2 = mido.open_output(port_name_midifile)
+
+# Parametres pour respiro
+port_name_respiro = main_respiro_param["port_name_respiro"]
+midi_out = mido.open_output(port_name_respiro)
+
 # Charger le fichier MIDI
 midi_file = mido.MidiFile(main_respiro_param["midi_file"])
+
+# Parametres pour les CC    
+rms_max_souffle = main_respiro_param["rms_max"] # Augmenter la valeur pour plus de variation de rms
+rms_max = rms_max_souffle / 0.9
+CHANNEL_RESPIRO = main_respiro_param["CHANNEL_RESPIRO"]
+CC_rms = main_respiro_param["CC_rms"] # Channel 2: Breath Control
+CC_i = main_respiro_param["CC_i"]   # Channel 9: changement de timbre i
+CC_u = main_respiro_param["CC_u"]  # Channel 14: changment de timbre u
+CC_a = main_respiro_param["CC_a"]  # changment de timbre a
+device_index = main_respiro_param["output_device_index"]  
 
 # Extraire les chemins depuis le YAML
 outputs = config["classification"]["outputs"]
@@ -96,14 +115,16 @@ n_label_for_use_remplacer_t_par_i = other_params_main_respiro["remplacer_t_par_i
 canal_midi = config["main_respiro"]["canal_midi_sans_respiro"]
 instrument = config["main_respiro"]["instrument_sans_respiro"]
 
+if_fluidsythn = config["main_respiro"]["fluidsynth"]
 ##########################################################################################
 # INITIALISATION ET CHARGEMENT DES DONNEES
 
 # Initialiser FluidSynth avec une soundfont
-fluid = fluidsynth.Synth()
-fluid.start()
-sfid = fluid.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")  
-fluid.program_select(canal_midi, sfid, 0, instrument)# INITIALISATION ET CHARGEMENT DES DONNEES
+if if_fluidsythn:
+    fluid = fluidsynth.Synth()
+    fluid.start()
+    sfid = fluid.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")  
+    fluid.program_select(canal_midi, sfid, 0, instrument)# INITIALISATION ET CHARGEMENT DES DONNEES
 
 # Tronquer mean et std
 block_size = 11
@@ -220,17 +241,59 @@ def adapt_transitions(transitions, letters):
 new_transitions = adapt_transitions(transitions, letters)
 
 # Fonction de transition qui retourne le nouvel état et l'action associée
-# Fonction de transition qui retourne le nouvel état et l'action associée
 def transition(etat, char):
     new_state = new_transitions.get((etat, char), etat) 
     action = None
 
     if etat == "2":
         action = "OFF"
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))       # timbre i
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))       # timbre u
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))       # timbre a
     elif etat in {"3", "4", "11", "14"}:
         action = "ON"
+        if etat in {"11"}:
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))   # timbre a
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))   # timbre u
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=127)) # timbre i
+        if etat in {"14"}:
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))   # timbre a
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=127)) # timbre u
+        if etat in {"4"}:
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))   # timbre u
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=127)) # timbre a
+        else:
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))   # timbre u
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))   # timbre a
     elif etat in {"8", "12", "15"}:
         action = "ON_OFF"
+        if etat == "12":
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))   # timbre a
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))   # timbre u
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=127)) # timbre i
+        if etat == "15":
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))   # timbre a
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=127)) # timbre u
+        if etat == "8":
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))   # timbre i
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))   # timbre u
+            midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=127)) # timbre a
+    elif etat == "13":
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))       # timbre a
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))       # timbre u
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=127))     # timbre i
+    elif etat == "16":
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))       # timbre i
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=0))       # timbre a
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=127))     # timbre u
+    elif etat == "9":
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_i, value=0))       # timbre i
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_u, value=0))       # timbre u
+        midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_a, value=127))     # timbre a
     return new_state, action
 
 # NOTE_ON AND NOTE_OFF
@@ -245,14 +308,20 @@ def handle_event(event_type):
         if note_pointer < len(midi_notes):
             note = midi_notes[note_pointer]
             note_stack.append(note)
-            fluid.noteon(0, note.note, note.velocity)
+            if if_fluidsythn: 
+                fluid.noteon(0, note.note, note.velocity)
+            midi_out.send(mido.Message('note_on', note = note.note, velocity=note.velocity))
             # print(f"ON → note {note.note} (pile = {[n.note for n in note_stack]})")
+            port2.send(mido.Message('note_on', note = note.note, velocity=note.velocity))
             note_pointer += 1
     elif event_type == "OFF":
         if note_stack:
             note_to_off = note_stack.pop(0)
-            fluid.noteoff(0, note_to_off.note)
+            if if_fluidsythn:
+                fluid.noteoff(0, note_to_off.note)
+            midi_out.send(mido.Message('note_off', note = note_to_off.note))
             # print(f"OFF → note {note_to_off.note} (pile = {[n.note for n in note_stack]})")
+            port2.send(mido.Message('note_off', note = note_to_off.note))
 
 ##########################################################################################
 # PRISE DU FLUX AUDIO EN TEMPS REEL
@@ -379,11 +448,22 @@ last_update_time = 0
 historique_lettres = []
 etat = "1"
 
+# Parametres pour respiro
+alpha = 0.05
+smoothed_midi_val_rms = 0
+velocity_base = 100
+
 # File de communication thread audio ➝ thread principal
 graph_queue = queue.Queue()
 
 def audio_loop():
-    global audio_buffer, start, mfcc_buffer, etat, last_update_time
+    global rms_max
+    global audio_buffer
+    global smoothed_midi_val_rms
+    global start
+    global mfcc_buffer
+    global etat
+    global last_update_time
 
     stream = p.open(
         format=FORMAT,
@@ -405,6 +485,38 @@ def audio_loop():
             all_audio_buffer = audio_buffer[:int(CHUNK * taux_recouvrement)] 
             audio_buffer = audio_buffer[CHUNK:] 
             block = all_audio_buffer.astype(np.float32) / 32768.
+
+            # Calcul RMS
+            rms = np.sqrt(np.mean(audio_data.astype(np.float64) ** 2))
+            if rms > rms_max:
+                rms_max = rms
+            rms_clip = (rms - 0) / (rms_max - 0)
+            rms_sqrt = np.tanh(1.6*rms_clip)
+            midi_val_rms = rms_sqrt * 126
+            smoothed_midi_val_rms = alpha * midi_val_rms + (1 - alpha) * smoothed_midi_val_rms
+            rms_max = main_respiro_param["rms_max"]
+
+            rms = np.sqrt(np.mean(audio_data.astype(np.float64) ** 2))
+            
+            while len(audio_buffer) >= int(CHUNK * taux_recouvrement):
+                
+                # Envoie de la valeur rms pour les breath control
+                midi_out.send(mido.Message('control_change', channel=CHANNEL_RESPIRO, control=CC_rms, value=int(smoothed_midi_val_rms)))
+
+                # Normalisation de l'amplitude du signal
+                if rms > 0:
+                    audio_data = audio_data / rms  # normalise le signal par sa propre puissance RMS
+                    audio_data = np.clip(audio_data, -1.0, 1.0)  # évite les dépassements d'amplitude
+                    audio_data = (audio_data * 32767).astype(np.int16)
+
+                start += len(audio_buffer)
+                frames.extend(audio_data) # Decommenter pour l'affichage
+
+                # Parametres pour le calcul des MFCC
+                all_audio_buffer = audio_buffer[:int(CHUNK * taux_recouvrement)] 
+                audio_buffer = audio_buffer[CHUNK:] 
+                block = all_audio_buffer.astype(np.float32) / 32768.0
+                
                 
             # 1. Calcule des MFCC
             mfcc = spectral.mfcc(y=block.astype(float), sr=fs, n_mfcc=n_mfcc,
@@ -629,7 +741,8 @@ def audio_loop():
         except Exception:
             pass
         p.terminate()
-        fluid.delete()
+        if if_fluidsythn:
+            fluid.delete()
         print("Flux audio arrêté.")
 
 
@@ -689,5 +802,6 @@ plt.show(block=True)
 
 # Attendre la fin du thread audio
 audio_thread.join()
-fluid.delete()
+if if_fluidsythn:
+    fluid.delete()
 print("Programme terminé.")

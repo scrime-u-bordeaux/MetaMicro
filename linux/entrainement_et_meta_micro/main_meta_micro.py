@@ -20,6 +20,7 @@ with open(get_yaml_path(), "r") as file:
 ##########################################################################################
 # DESCRIPTIONS DES PARAMETRES
 param_descriptions = {
+    "fluidsynth" : "Ecrire True (pour utiliser fluidsynth) ou False (pour ne pas utiliser fluidsynth)",
     "output_device_index" : "Indice du flux audio", 
     "canal_midi_sans_respiro" : "Canal à utiliser pour Fluidsynth",
     "instrument_sans_respiro" : "Numéro de l'instrument MIDI pour Fluidsynth",
@@ -347,6 +348,21 @@ script_title = tk.Label(
 )
 script_title.pack()
 
+btn_accordeur = tk.Button(
+    script_frame,
+    text="Calculer souffle maximum",
+    command=lambda: run_script("linux/entrainement_et_meta_micro/tester_souffle.py", folder_selected),
+    font=button_font,
+    bg="#8e44ad",
+    fg="black",
+    activebackground="#9b59b6",
+    activeforeground="black",
+    bd=0,
+    padx=10,
+    pady=5
+)
+btn_accordeur.pack(fill="x", pady=5)
+
 btn_rms = tk.Button(
     script_frame,
     text="Jouer avec l'accordeur de voyelle",
@@ -362,20 +378,6 @@ btn_rms = tk.Button(
 )
 btn_rms.pack(fill="x", pady=5)
 
-btn_accordeur = tk.Button(
-    script_frame,
-    text="Jouer sans accordeur avec midifile",
-    command=lambda: run_script("linux/entrainement_et_meta_micro/calcul_mfcc_midifile.py", folder_selected),
-    font=button_font,
-    bg="#8e44ad",
-    fg="black",
-    activebackground="#9b59b6",
-    activeforeground="black",
-    bd=0,
-    padx=10,
-    pady=5
-)
-btn_accordeur.pack(fill="x", pady=5)
 
 btn_respiro = tk.Button(
     script_frame,

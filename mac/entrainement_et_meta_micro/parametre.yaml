@@ -44,6 +44,7 @@ classification:
     eigenvectors_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/eigenvectors_marqueurs.csv
     knn_model_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/knn_model.csv
 main_respiro:
+  fluidsynth : true
   output_device_index : 4
   canal_midi_sans_respiro: 0
   instrument_sans_respiro: 73
