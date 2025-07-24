@@ -9,13 +9,28 @@ import os
 import threading
 from tkinter import font, ttk
 import modif_libro.spectral as spectral  
+import sys
+import os 
 
 ##########################################################################################
 # CHARGER YAML
-yaml_path = "parametre.yaml"
-with open(yaml_path, "r") as file:
-    config = yaml.safe_load(file)
+if len(sys.argv) > 1:
+    chemin_dossier = sys.argv[1]
+    print(f"Dossier reçu : {chemin_dossier}")
+else:
+    print("Aucun dossier fourni, utilisation du chemin par défaut.")
 
+if chemin_dossier:
+    fichier = os.path.join(chemin_dossier, "parametre.yaml")
+    print(f"Chemin complet : {fichier}")
+else:
+    # Tu peux définir un comportement par défaut ici
+    fichier = "parametre.wav"  # dans le dossier courant
+    print(f"Chemin par défaut : {fichier}")
+
+with open(fichier, "r") as file:
+    config = yaml.safe_load(file)
+    
 # Parametres d'entrée
 letters = config["calcul_mfcc"]["letters"]
 file_path_txt = config["calcul_mfcc"]["file_path_txt"]
@@ -48,7 +63,7 @@ def log(message):
 
 # Fonction pour sauvegarder le YAML
 def save_yaml():
-    with open(yaml_path, "w", encoding="utf-8") as file:
+    with open(fichier, "w", encoding="utf-8") as file:
         yaml.dump(config, file, sort_keys=False, allow_unicode=True)
 
 # Fonction pour sauvegarder le fichier

@@ -19,10 +19,25 @@ import plotly.graph_objects as go
 import tkinter as tk
 import threading
 import yaml
+import os
 
 ##########################################################################################
 ## LECTURE DES PARAMÈTRES YAML
-with open("parametre.yaml", "r") as file:
+if len(sys.argv) > 1:
+    chemin_dossier = sys.argv[1]
+    print(f"Dossier reçu : {chemin_dossier}")
+else:
+    print("Aucun dossier fourni, utilisation du chemin par défaut.")
+
+if chemin_dossier:
+    fichier = os.path.join(chemin_dossier, "parametre.yaml")
+    print(f"Chemin complet : {fichier}")
+else:
+    # Tu peux définir un comportement par défaut ici
+    fichier = "parametre.wav"  # dans le dossier courant
+    print(f"Chemin par défaut : {fichier}")
+
+with open(fichier, "r") as file:
     config = yaml.safe_load(file)
 
 main_respiro_param = config["main_respiro"]

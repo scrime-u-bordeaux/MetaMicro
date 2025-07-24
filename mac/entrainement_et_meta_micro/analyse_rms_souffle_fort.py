@@ -5,12 +5,28 @@ import pyaudio
 import numpy as np
 import yaml
 import mido
+import sys
+import os
 
+##########################################################################################
 # Charger YAML
-yaml_path = "parametre.yaml"
-with open(yaml_path, "r") as file:
-    config = yaml.safe_load(file)
+if len(sys.argv) > 1:
+    chemin_dossier = sys.argv[1]
+    print(f"Dossier reçu : {chemin_dossier}")
+else:
+    print("Aucun dossier fourni, utilisation du chemin par défaut.")
 
+if chemin_dossier:
+    fichier = os.path.join(chemin_dossier, "parametre.yaml")
+    print(f"Chemin complet : {fichier}")
+else:
+    # Tu peux définir un comportement par défaut ici
+    fichier = "parametre.wav"  # dans le dossier courant
+    print(f"Chemin par défaut : {fichier}")
+
+with open(fichier, "r") as file:
+    config = yaml.safe_load(file)
+    
 main_respiro_param = config["main_respiro"]
 rms_max = 0
 
@@ -67,7 +83,7 @@ def save_yaml():
     # S’assurer que rms_max est un float natif
     if isinstance(main_respiro_param["rms_max"], np.generic):
         main_respiro_param["rms_max"] = float(main_respiro_param["rms_max"])
-    with open(yaml_path, "w", encoding="utf-8") as file:
+    with open(fichier, "w", encoding="utf-8") as file:
         yaml.dump(config, file, sort_keys=False, allow_unicode=True)
 
 def update_gui(rms_value, rms_max_value):
