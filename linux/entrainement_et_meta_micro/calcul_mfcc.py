@@ -74,6 +74,9 @@ n_label_for_if_vide = other_params_main_respiro["vide_if_n_label"].get("n", Fals
 use_remplacer_t_par_i = other_params_main_respiro["remplacer_t_par_i"].get("value", False)
 n_label_for_use_remplacer_t_par_i = other_params_main_respiro["remplacer_t_par_i"].get("n", False)
 
+canal_midi = config["main_respiro"]["canal_midi_sans_respiro"]
+instrument = config["main_respiro"]["instrument_sans_respiro"]
+
 ##########################################################################################
 # INITIALISATION ET CHARGEMENT DES DONNEES
 
@@ -81,7 +84,7 @@ n_label_for_use_remplacer_t_par_i = other_params_main_respiro["remplacer_t_par_i
 fluid = fluidsynth.Synth()
 fluid.start()
 sfid = fluid.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")  
-fluid.program_select(0, sfid, 0, 73)
+fluid.program_select(canal_midi, sfid, 0, instrument)
 
 # Tronquer mean et std
 block_size = 11
@@ -485,7 +488,8 @@ def audio_loop():
                             and len(majority_label_prec) == n_label_for_use_remplacer_t_par_i
                             and all(lbl == label_mapping["t"] for lbl in majority_label_prec)
                         ):
-                            majority_label = Label.I.value
+                            if "i" in letters:
+                                majority_label = Label.I.value
 
                     mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction
                     time_values.extend([start / fs] * len(predictions)) # Decommenter pour correction

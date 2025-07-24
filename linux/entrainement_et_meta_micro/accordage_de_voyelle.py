@@ -75,6 +75,9 @@ n_label_for_if_vide = other_params_main_respiro["vide_if_n_label"].get("n", Fals
 use_remplacer_t_par_i = other_params_main_respiro["remplacer_t_par_i"].get("value", False)
 n_label_for_use_remplacer_t_par_i = other_params_main_respiro["remplacer_t_par_i"].get("n", False)
 
+canal_midi = config["main_respiro"]["canal_midi_sans_respiro"]
+instrument = config["main_respiro"]["instrument_sans_respiro"]
+
 ##########################################################################################
 # INITIALISATION ET CHARGEMENT DES DONNEES
 
@@ -82,7 +85,7 @@ n_label_for_use_remplacer_t_par_i = other_params_main_respiro["remplacer_t_par_i
 fluid = fluidsynth.Synth()
 fluid.start()
 sfid = fluid.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")  
-fluid.program_select(0, sfid, 0, 73)
+fluid.program_select(canal_midi, sfid, 0, instrument)# INITIALISATION ET CHARGEMENT DES DONNEES
 
 # Tronquer mean et std
 block_size = 11

@@ -8,11 +8,7 @@ from itertools import combinations
 import os
 import threading
 from tkinter import font, ttk
-<<<<<<<< HEAD:linux/entrainement_avec_affichage/calcul_mfcc_yaml_affichage.py
-import scripts.modif_libro.spectral as spectral
-========
-import script.modif_libro.spectral as spectral  
->>>>>>>> fusion_mac_main:mac/entrainement_avec_affichage/calcul_mfcc_yaml_affichage.py
+import scripts.modif_libro.spectral as spectral  
 
 ##########################################################################################
 # CHARGER YAML
