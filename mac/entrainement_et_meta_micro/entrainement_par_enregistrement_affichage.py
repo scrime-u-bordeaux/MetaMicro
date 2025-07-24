@@ -16,6 +16,7 @@ with open(yaml_path, "r") as file:
 
 # Chemin de sortie
 output_path = config["calcul_mfcc"]["file_path_audio_non_concat"]
+device_index = config["calcul_mfcc"]["output_device_index"]  
 
 ##########################################################################################
 # PARAMÈTRES AUDIO
@@ -53,7 +54,7 @@ def record_audio():
         channels=CHANNELS,
         rate=RATE,
         input=True,
-        output_device_index=4,
+        output_device_index=device_index,
         frames_per_buffer=CHUNK,
     )
     audio_frames = []

@@ -72,6 +72,7 @@ CC_rms = main_respiro_param["CC_rms"] # Channel 2: Breath Control
 CC_i = main_respiro_param["CC_i"]   # Channel 9: changement de timbre i
 CC_u = main_respiro_param["CC_u"]  # Channel 14: changment de timbre u
 CC_a = main_respiro_param["CC_a"]  # changment de timbre a
+device_index = main_respiro_param["output_device_index"]  
 
 # Charger le fichier MIDI
 midi_file = mido.MidiFile(main_respiro_param["midi_file"])
@@ -146,7 +147,7 @@ stream = p.open(
     rate=RATE,
     input=True,
     # input_device_index=6,
-    output_device_index=4,
+    output_device_index=device_index,
     frames_per_buffer=CHUNK,
     # stream_callback=callback
 )

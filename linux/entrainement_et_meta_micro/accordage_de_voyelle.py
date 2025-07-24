@@ -71,6 +71,7 @@ eigenvectors_path = outputs["eigenvectors_output"]
 mean_X_path = outputs["mean_X_output"]
 std_X_path = outputs["std_X_output"]
 proj_pca_path = outputs["proj_pca_output"]
+device_index = main_respiro_param["output_device_index"]  
 
 # Charger les fichiers
 knn_model = joblib.load(knn_model_path)
@@ -389,7 +390,7 @@ def audio_loop():
         channels=CHANNELS,
         rate=RATE,
         input=True,
-        output_device_index=4,
+        output_device_index=device_index,
         frames_per_buffer=CHUNK,
     )
 

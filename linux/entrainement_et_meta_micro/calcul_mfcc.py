@@ -92,6 +92,7 @@ n_label_for_use_remplacer_t_par_i = other_params_main_respiro["remplacer_t_par_i
 
 canal_midi = config["main_respiro"]["canal_midi_sans_respiro"]
 instrument = config["main_respiro"]["instrument_sans_respiro"]
+device_index = main_respiro_param["output_device_index"]  
 
 ##########################################################################################
 # INITIALISATION ET CHARGEMENT DES DONNEES
@@ -139,7 +140,7 @@ stream = p.open(
     channels=CHANNELS,
     rate=RATE,
     input=True,
-    output_device_index=4,
+    output_device_index=device_index,
     frames_per_buffer=CHUNK,
 )
 audio_frames = []
