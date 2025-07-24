@@ -7,7 +7,7 @@ import yaml
 import mido
 
 # Charger YAML
-yaml_path = "mac/entrainement_et_meta_micro/parametre.yaml"
+yaml_path = "parametre.yaml"
 with open(yaml_path, "r") as file:
     config = yaml.safe_load(file)
 
