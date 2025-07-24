@@ -187,7 +187,7 @@ def full_classification_script():
         log(f"Meilleur score DB : {best_score:.4f} atteint pour n = {best_n} dimensions.")
 
         # Changement de best score pour l'affichage sur le score vaut 2
-        if best_n == 2:
+        if best_n <= 2:
             best_n = 3
 
         # Réduction des vecteurs propres aux nombres de dimensions sélectionnés

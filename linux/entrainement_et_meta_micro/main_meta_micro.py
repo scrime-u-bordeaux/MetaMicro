@@ -8,7 +8,7 @@ import mido
 
 ##########################################################################################
 # CHARGER YAML
-yaml_path = "parametre.yaml"
+yaml_path = "linux/entrainement_et_meta_micro/parametre.yaml"
 with open(yaml_path, "r") as file:
     config = yaml.safe_load(file)
 

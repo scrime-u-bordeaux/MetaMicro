@@ -20,6 +20,7 @@ import time
 import queue
 import matplotlib
 from matplotlib import pyplot as plt
+import traceback
 
 ##########################################################################################
 # CHANGER LA SOURCE ET LA SORTIE 
@@ -28,7 +29,7 @@ from matplotlib import pyplot as plt
 
 ##########################################################################################
 ## LECTURE DES PARAMÈTRES YAML
-with open("parametre.yaml", "r") as file:
+with open("linux/entrainement_et_meta_micro/parametre.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 main_respiro_param = config["main_respiro"]
@@ -36,7 +37,6 @@ main_respiro_param = config["main_respiro"]
 # Lettres
 letters = config["calcul_mfcc"]["letters"]
 letters_with_st = letters + [l for l in ["s", "t"] if l not in letters]
-
 # Parametres mfcc
 mfcc_params = config["calcul_mfcc"]["pamatres_mfcc"]
 n_mfcc = mfcc_params["n_mfcc"]
@@ -562,7 +562,8 @@ def audio_loop():
                         and len(majority_label_prec) == n_label_for_use_remplacer_t_par_i
                         and all(lbl == label_mapping["t"] for lbl in majority_label_prec)
                     ):
-                        majority_label = Label.I.value
+                        if "i" in letters:
+                            majority_label = Label.I.value
 
                 mfcc_features.extend(df_mfcc.values.tolist())  # decommanter pour correction
                 time_values.extend([start / fs] * len(predictions)) # Decommenter pour correction
@@ -599,6 +600,7 @@ def audio_loop():
 
     except Exception as e:
         print(f"Erreur audio : {e}")
+        traceback.print_exc()
     finally:
         try:
             stream.stop_stream()
