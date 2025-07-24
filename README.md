@@ -15,103 +15,82 @@ Avant de lancer, assurez-vous d'avoir :
 
 ### Installer les bibliothèques Python requises
 
+```bash
 pip install -r requirements.txt
-
-
+  ```
 ---
 
 ### Installer les dépendances système
 
-#### Installer `portaudio` (nécessaire pour `pyaudio`)
-
+#### **Installer `portaudio` (nécessaire pour `pyaudio`)**
 - **Linux (Debian/Ubuntu)** :
-
-bash
-  sudo apt install fluidsynth
-
-
+  ```bash
+  sudo apt install portaudio19-dev
+  ```
 - **macOS** :
-
-bash
+  ```bash
   brew install portaudio
-
-
+  ```
 - **Windows** (avec Chocolatey) :
-
-bash 
+  ```powershell
   choco install portaudio
+  ```
 
-
-#### Installer `fluidsynth` (nécessaire pour la synthèse MIDI)
-
+#### **Installer `fluidsynth` (nécessaire pour la synthèse MIDI)**
 - **Linux (Debian/Ubuntu)** :
-
-bash 
+  ```bash
   sudo apt install fluidsynth
-
-
+  ```
 - **macOS** :
-
-bash 
+  ```bash
   brew install fluidsynth
-
-
+  ```
 - **Windows** (avec Chocolatey) :
-
-bash 
+  ```powershell
   choco install fluidsynth
+  ```
 
+#### **Télécharger et ajouter la SoundFont FluidR3_GM.sf2**
 
-#### Télécharger et ajouter la SoundFont `FluidR3_GM.sf2`
+Si l'installation de fluidsynth à échoué: 
 
-Si l'installation de fluidsynth a échoué :
+Téléchargez le fichier `FluidR3_GM.sf2` depuis ce lien :
 
-1. Téléchargez le fichier depuis ce lien :  
-   https://member.keymusician.com/Member/FluidR3_GM/index.html
+[FluidR3_GM.sf2](https://member.keymusician.com/Member/FluidR3_GM/index.html)
 
-2. Placez-le dans le dossier suivant :  
-   `/usr/share/sounds/sf2/FluidR3_GM.sf2`
+Puis placez-le suivant ce chemin: **/usr/share/sounds/sf2/FluidR3_GM.sf2**.
 
 ---
 
 ## Configuration de l'Audio
 
-### Vérifications importantes
-
-- Assurez-vous que :
-  - l’entrée se fait via un **microphone**
-  - la sortie se fait via un **casque**
-- Les **ports d’entrée et de sortie doivent être différents**
+### **Vérifications Importantes**
+- Vérifiez que l’entrée se fait bien via un **microphone** et la sortie via un **casque**.
+- Les **ports d’entrée et de sortie doivent être différents**.
 
 ### **Changer la source et la sortie audio sous Linux**
-Si vous utilisez Linux, vous pouvez configurer les ports avec pactl :
-
-bash 
-  pactl set-default-source <id_microphone>
-  pactl set-default-sink <id_casque>
-
-
-**Obtenir la liste des sources :**
-
-bash 
-  pactl list sources short
-
-
-**Obtenir la liste des sorties :**
-
-bash 
-  pactl list sinks short
-
+Si vous utilisez Linux, vous pouvez configurer les ports avec `pactl` :
+```bash
+pactl set-default-source <id_microphone>
+pactl set-default-sink <id_casque>
+```
+Obtenir la liste des sources :
+```bash
+pactl list sources short
+```
+Obtenir la liste des sorties :
+```bash
+pactl list sinks short
+```
 
 ---
 
 ## Exécution
 
-**Lancez l’application avec :**
-
-bash 
-  python3 main.py
-
+Lancez l’application avec :
+```bash
+python3 main.py
+```
 
 ### Lancement de l'application
 
@@ -199,40 +178,35 @@ Ensuite vous pouvez choisir entre:
 
 ## Debugging des erreurs courantes
 
-### Fluidsynth : "Failed to set thread to high priority"
-
+### Problème : Fluidsynth "Failed to set thread to high priority"
+```bash
 sudo setcap 'cap_sys_nice=eip' $(which fluidsynth)
-
-
-### ALSA : "unable to open slave"
-
-- **Linux** :
-
-sudo apt install alsa-utils
-
-
+```
+### Problème : ALSA "unable to open slave"
+- **Linux (Debian/Ubuntu)** :
+  ```bash
+  sudo apt install alsa-utilsh
+  ```
 - **macOS** :
-
-brew install alsa-utils
-
-
+  ```bash
+  brew install alsa-utilsh
+  ```
 - **Windows** :
+  ```powershell
+  choco install alsa-utilsh
+  ```
 
-choco install alsa-utils
-
-
-### JACK : "connect(2) failed"
-
-- **Linux** :
-
-sudo apt install jackd2
-
-
+###  Problème : JACK "connect(2) failed"
+- **Linux (Debian/Ubuntu)** :
+  ```bash
+  sudo apt install jackd2
+  ```
 - **macOS** :
-
-brew install jackd2
-
-
+  ```bash
+  brew install jackd2
+  ```
 - **Windows** :
-
-choco install jackd2
+  ```powershell
+  choco install jackd2
+  ```
+---
