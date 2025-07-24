@@ -77,21 +77,23 @@ Si l'installation de fluidsynth a échoué :
   - la sortie se fait via un **casque**
 - Les **ports d’entrée et de sortie doivent être différents**
 
-### Changer la source et la sortie audio sous Linux
+### **Changer la source et la sortie audio sous Linux**
+Si vous utilisez Linux, vous pouvez configurer les ports avec pactl :
 
-Utilisez `pactl` :
-
+bash
 pactl set-default-source <id_microphone>
 pactl set-default-sink <id_casque>
 
 
-Lister les sources disponibles :
+Obtenir la liste des sources :
 
+bash
 pactl list sources short
 
 
-Lister les sorties disponibles :
+Obtenir la liste des sorties :
 
+bash
 pactl list sinks short
 
 
@@ -120,38 +122,40 @@ Ensuite, vous pouvez choisir entre deux options :
 
 Choisissez parmi :
 
-a, i, u (= le son "ou"), n, l
-
-
-Le son **t** est automatiquement inclus.
-
-> ✅ Il est **recommandé de ne pas sélectionner plus de 3 lettres** à la fois.
+- a
+- i
+- u (= le son "ou")
+- n
+- l
+> Le son **t** est automatiquement inclus.
+> Il est **recommandé de ne pas sélectionner plus de 3 lettres** à la fois.
 
 #### 2. Enregistrement vocal
 
 Un tutoriel intégré vous guide pour enregistrer votre voix avec les sons choisis.
 
-#### 3. Analyse et concaténation
+#### 3. Analyse
 
-Une fenêtre d’analyse s’ouvre automatiquement :
+Une fenêtre d’analyse s’ouvre automatiquement 
+
+#### 4. Concaténation et script
 
 - Cliquez sur **"Concaténer"**
 - Puis sur **"Lancer le script"**
 
 Trois fenêtres s’affichent pour effectuer les calculs.  
-> ⚠️ La **2e fenêtre peut être lente à apparaître**. Attendez sans fermer les autres.
+> La **2e fenêtre peut être lente à apparaître**.
 
-#### 4. Sauvegarde des fichiers
+#### 5. Sauvegarde des fichiers
 
 À la fin de chaque étape, il vous sera demandé **où enregistrer les fichiers** :
 
 - Enregistrez-les dans un **dossier d'entraînement**
 - Un dossier par défaut est proposé à la racine du projet
 - Vous pouvez créer un autre dossier si besoin
+> **Ne fermez pas les fenêtres** tant qu’un message indique que les fichiers ont bien été enregistrés.
 
-> ⚠️ **Ne fermez pas les fenêtres** tant qu’un message indique que les fichiers ont bien été enregistrés.
-
-#### 5. Ajout du fichier `.yaml`
+#### 6. Ajout du fichier `.yaml`
 
 Les paramètres d'entraînement sont sauvegardés dans un fichier `.yaml`.
 
@@ -161,12 +165,12 @@ Les paramètres d'entraînement sont sauvegardés dans un fichier `.yaml`.
 
 ### Tester le Meta Micro
 
-Après l'entraînement, cliquez sur **"Tester le Meta Micro"** :
+Après l'entraînement, cliquez sur **"Tester le Meta Micro"**
+Ensuite vous pouvez choisir entre:
 
 1. Sélectionnez le **dossier d'entraînement**
 2. Vous pouvez modifier les **paramètres du fichier `.yaml`**
-
-> ℹ️ Tous les paramètres sont expliqués à l’aide de **boutons "i"** dans l'interface.
+> Tous les paramètres sont expliqués à l’aide de **boutons "i"** dans l'interface.
 
 ---
 
