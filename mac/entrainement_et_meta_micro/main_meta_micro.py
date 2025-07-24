@@ -20,6 +20,8 @@ with open(get_yaml_path(), "r") as file:
 ##########################################################################################
 # DESCRIPTIONS DES PARAMETRES
 param_descriptions = {
+    "canal_midi_sans_respiro" : "Canal à utiliser pour Fluidsynth",
+    "instrument_sans_respiro" : "Numéro de l'instrument MIDI pour Fluidsynth",
     "rms_max": "Valeur maximale du RMS utilisée pour normaliser le volume. A modifier à la main ou avec l'option 'calculer souffle maximum'",
     "port_name_respiro": "Nom du port MIDI pour Respiro.",
     "port_name_midifile": "Nom du port MIDI pour le fichier MIDI.",
