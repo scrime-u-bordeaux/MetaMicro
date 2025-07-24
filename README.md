@@ -26,34 +26,40 @@ pip install -r requirements.txt
 
 - **Linux (Debian/Ubuntu)** :
 
-sudo apt install portaudio19-dev
+bash
+  sudo apt install fluidsynth
 
 
 - **macOS** :
 
-brew install portaudio
+bash
+  brew install portaudio
 
 
 - **Windows** (avec Chocolatey) :
 
-choco install portaudio
+bash 
+  choco install portaudio
 
 
 #### Installer `fluidsynth` (nécessaire pour la synthèse MIDI)
 
 - **Linux (Debian/Ubuntu)** :
 
-sudo apt install fluidsynth
+bash 
+  sudo apt install fluidsynth
 
 
 - **macOS** :
 
-brew install fluidsynth
+bash 
+  brew install fluidsynth
 
 
 - **Windows** (avec Chocolatey) :
 
-choco install fluidsynth
+bash 
+  choco install fluidsynth
 
 
 #### Télécharger et ajouter la SoundFont `FluidR3_GM.sf2`
@@ -80,30 +86,31 @@ Si l'installation de fluidsynth a échoué :
 ### **Changer la source et la sortie audio sous Linux**
 Si vous utilisez Linux, vous pouvez configurer les ports avec pactl :
 
-bash
-pactl set-default-source <id_microphone>
-pactl set-default-sink <id_casque>
+bash 
+  pactl set-default-source <id_microphone>
+  pactl set-default-sink <id_casque>
 
 
-Obtenir la liste des sources :
+**Obtenir la liste des sources :**
 
-bash
-pactl list sources short
+bash 
+  pactl list sources short
 
 
-Obtenir la liste des sorties :
+**Obtenir la liste des sorties :**
 
-bash
-pactl list sinks short
+bash 
+  pactl list sinks short
 
 
 ---
 
 ## Exécution
 
-Lancez l’application avec :
+**Lancez l’application avec :**
 
-python3 main.py
+bash 
+  python3 main.py
 
 
 ### Lancement de l'application
