@@ -1,0 +1,15 @@
+audioread
+joblib
+librosa
+matplotlib
+mido
+numpy
+pandas
+pyaudio
+pyfluidsynth
+scikit-learn
+scipy
+python-rtmidi; sys_platform == "linux"
+plotly
+pydub
+pyyaml
