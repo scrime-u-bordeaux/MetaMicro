@@ -8,8 +8,13 @@ import mido
 
 ##########################################################################################
 # CHARGER YAML
-yaml_path = "parametre.yaml"
-with open(yaml_path, "r") as file:
+# Si aucun dossier selectionner
+folder_selected = "dossier_entrainement"
+
+def get_yaml_path():
+    return os.path.join(folder_selected, "parametre.yaml")
+
+with open(get_yaml_path(), "r") as file:
     config = yaml.safe_load(file)
 
 ##########################################################################################
@@ -38,9 +43,9 @@ def log(message):
     root.update()
 
 def save_yaml():
-    with open(yaml_path, "w", encoding="utf-8") as file:
+    with open(get_yaml_path(), "w", encoding="utf-8") as file:
         yaml.dump(config, file, sort_keys=False, allow_unicode=True)
-    log(f"YAML mis à jour : {yaml_path}")
+    log(f"YAML mis à jour : {get_yaml_path()}")
 
 def update_paths_in_yaml(base_dir):
     def update_path(path):
@@ -62,6 +67,7 @@ def update_paths_in_yaml(base_dir):
     save_yaml()
 
 def choose_directory():
+    global folder_selected
     folder_selected = filedialog.askdirectory(title="Choisir le dossier d’entraînement")
     if folder_selected:
         log(f"Dossier sélectionné : {folder_selected}")
@@ -92,10 +98,13 @@ def create_info_button(parent, param_name):
 
 ##########################################################################################
 # FONCTION POUR LANCER LES SCRIPTS
-def run_script(script_name):
+def run_script(script_name, chemin_dossier = None):
     log(f"Lancement de {script_name} ...")
+    command = ["python3", script_name]
+    if chemin_dossier:
+        command.append(chemin_dossier)
     try:
-        subprocess.run(["python3", script_name], check=True)
+        subprocess.run(command, check=True)
         log(f"{script_name} terminé avec succès.")
     except subprocess.CalledProcessError as e:
         log(f"Erreur lors de l’exécution de {script_name} : {e}")
@@ -338,7 +347,7 @@ script_title.pack()
 btn_rms = tk.Button(
     script_frame,
     text="Jouer avec l'accordeur de voyelle",
-    command=lambda: run_script("linux/entrainement_et_meta_micro/accordage_de_voyelle.py"),
+    command=lambda: run_script("linux/entrainement_et_meta_micro/accordage_de_voyelle.py", folder_selected),
     font=button_font,
     bg="#2980b9",
     fg="black",
@@ -353,7 +362,7 @@ btn_rms.pack(fill="x", pady=5)
 btn_accordeur = tk.Button(
     script_frame,
     text="Jouer sans accordeur avec midifile",
-    command=lambda: run_script("linux/entrainement_et_meta_micro/calcul_mfcc_midifile.py"),
+    command=lambda: run_script("linux/entrainement_et_meta_micro/calcul_mfcc_midifile.py", folder_selected),
     font=button_font,
     bg="#8e44ad",
     fg="black",
@@ -368,7 +377,7 @@ btn_accordeur.pack(fill="x", pady=5)
 btn_respiro = tk.Button(
     script_frame,
     text="Jouer sans accordage",
-    command=lambda: run_script("linux/entrainement_et_meta_micro/calcul_mfcc.py"),
+    command=lambda: run_script("linux/entrainement_et_meta_micro/calcul_mfcc.py", folder_selected),
     font=button_font,
     bg="#16a085",
     fg="black",
