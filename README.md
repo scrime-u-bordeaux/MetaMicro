@@ -210,3 +210,14 @@ sudo setcap 'cap_sys_nice=eip' $(which fluidsynth)
   choco install jackd2
   ```
 ---
+
+###  Problème : "ImportError: No module named 'tkinter"
+- **Linux (Debian/Ubuntu)** :
+  ```bash
+  sudo apt install python3-tk
+  ```
+- **macOS** :
+  ```bash
+  brew install python-tk
+  ```
+- **Windows** :
