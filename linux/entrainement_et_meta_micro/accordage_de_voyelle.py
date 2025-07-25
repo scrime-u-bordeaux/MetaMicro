@@ -81,6 +81,7 @@ CC_i = main_respiro_param["CC_i"]   # Channel 9: changement de timbre i
 CC_u = main_respiro_param["CC_u"]  # Channel 14: changment de timbre u
 CC_a = main_respiro_param["CC_a"]  # changment de timbre a
 device_index = main_respiro_param["output_device_index"]  
+device_index_in = main_respiro_param["input_device_index"]
 
 # Extraire les chemins depuis le YAML
 outputs = config["classification"]["outputs"]
@@ -89,8 +90,7 @@ knn_model_path = outputs["knn_model_output"]
 eigenvectors_path = outputs["eigenvectors_output"]
 mean_X_path = outputs["mean_X_output"]
 std_X_path = outputs["std_X_output"]
-proj_pca_path = outputs["proj_pca_output"]
-device_index = main_respiro_param["output_device_index"]  
+proj_pca_path = outputs["proj_pca_output"]  
 
 # Charger les fichiers
 knn_model = joblib.load(knn_model_path)
@@ -465,14 +465,23 @@ def audio_loop():
     global etat
     global last_update_time
 
-    stream = p.open(
-        format=FORMAT,
-        channels=CHANNELS,
-        rate=RATE,
-        input=True,
-        output_device_index=device_index,
-        frames_per_buffer=CHUNK,
-    )
+    # Ouverture du flux audio
+    stream_args = {
+        "format": FORMAT,
+        "channels": CHANNELS,
+        "rate": RATE,
+        "input": True,
+        "frames_per_buffer": CHUNK,
+        # "stream_callback": callback  # Décommenter si vous utilisez un callback
+    }
+
+    if device_index is not None:
+        stream_args["output_device_index"] = device_index
+
+    if device_index_in is not None:
+        stream_args["input_device_index"] = device_index_in
+
+    stream = p.open(**stream_args)
 
     try:
         print("Go")
