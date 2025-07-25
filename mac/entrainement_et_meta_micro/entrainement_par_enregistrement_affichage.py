@@ -16,7 +16,7 @@ with open(yaml_path, "r") as file:
 
 # Chemin de sortie
 output_path = config["calcul_mfcc"]["file_path_audio_non_concat"]
-device_index = config["calcul_mfcc"]["output_device_index"]  
+device_index = config["main_respiro"]["output_device_index"]  
 
 ##########################################################################################
 # PARAMÈTRES AUDIO

@@ -154,7 +154,9 @@ Les paramètres d'entraînement sont sauvegardés dans un fichier `.yaml`.
 
 ### Tester le Meta Micro
 
-Après l'entraînement, cliquez sur **"Tester le Meta Micro"**
+Avant tout test, enregistez une premiere fois les paramètres car certains peuvent être différents.
+
+Ensuite, cliquez sur **"Tester le Meta Micro"**
 Ensuite vous pouvez choisir entre:
 
 1. Sélectionnez le **dossier d'entraînement**
