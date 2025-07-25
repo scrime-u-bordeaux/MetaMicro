@@ -1,6 +1,7 @@
 calcul_mfcc:
   letters:
   - a
+  - i
   file_path_ta: linux/entrainement_et_meta_micro/ta_ti_i.wav
   file_path_ta_text: linux/entrainement_et_meta_micro/ta_ti_i.txt
   file_path_txt_non_concat: dossier_entrainement/mon_fichier.txt

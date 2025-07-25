@@ -183,6 +183,11 @@ Ensuite vous pouvez choisir entre:
 
 ## Debugging des erreurs courantes
 
+### **Vérifications Importantes**
+- Vérifiez que l’entrée se fait bien via un **microphone** et la sortie via un **casque**.
+- Les **ports d’entrée et de sortie doivent être différents**.
+- Vérifier que vous aviez bien **ajouté le fichier yaml** au dossier et que vous avez bien **enregistré les modifications**.
+
 ### Problème : Fluidsynth "Failed to set thread to high priority"
 ```bash
 sudo setcap 'cap_sys_nice=eip' $(which fluidsynth)
