@@ -164,7 +164,7 @@ def full_classification_script():
         plt.imshow(np.abs(eigenvectors), aspect='auto', cmap='viridis_r')
         plt.colorbar(label='Valeurs absolues du vecteur propre')
         plt.title('Vecteurs propres (colonnes)')
-        plt.show()
+        plt.savefig("img/Vect_Propres_avant_DB.png")
 
         # Calcul du score de Davies-Bouldin
         log("Recherche du meilleur nombre de dimensions projetées…")
@@ -179,7 +179,7 @@ def full_classification_script():
         plt.ylabel("Davies-Bouldin score (plus bas = meilleur)")
         plt.title("Qualité de séparation des groupes selon la projection")
         plt.grid()
-        plt.show()
+        plt.savefig("img/Resultat_DB.png")
 
         # Sélection du meilleur nombre de dimensions selon le score de Davies-Bouldin
         best_n = np.nanargmin(scores) + 1 # +1 car l'index 0 correspond à n=1
@@ -197,7 +197,7 @@ def full_classification_script():
         plt.imshow(np.abs(best_eigenvectors), aspect='auto', cmap='viridis_r')
         plt.colorbar(label='Valeurs absolues du vecteur propre')
         plt.title(f'{best_n} vecteurs propres correspondant au meilleur score DB')
-        plt.show()
+        plt.savefig("img/Vect_Propres_apres_DB.png")
 
         # Application du seuillage de certaines mfcc si nécessaire
         if suppression_mfcc:
@@ -213,14 +213,12 @@ def full_classification_script():
         plt.imshow(np.abs(eigenvectors_thresholded), aspect='auto', cmap='magma')
         plt.colorbar(label="Valeurs des vecteurs propres (seuillés)")
         plt.title("Vecteurs propres après seuillage")
-        plt.show()
+        plt.savefig("img/Vect_Propres_seuille.png")
 
         # Projection des données sur les vecteurs propres
         X_proj_thresh = X_scaled @ eigenvectors_thresholded[:, :best_n]
 
         # Affichage de la projection 3D
-        log("Affichage de la projection 3D sur les vecteurs propres seuillés…")
-
         # Mapping label
         label_mapping_inv = {v: k for k, v in label_mapping.items()}
         block_labels_text = [label_mapping_inv[label] for label in block_labels_balanced]
@@ -263,7 +261,7 @@ def full_classification_script():
         ]
         ax.legend(handles=handles, title="Légende")
         plt.tight_layout()
-        plt.show()
+        plt.savefig("img/Projection_3D.png")
 
         # Sauvegarde de la projection seuillée
         save_path = ask_save_file(proj_pca_output)
@@ -333,7 +331,7 @@ def full_classification_script():
             cmap="Blues"
         )
         plt.title("Matrice de confusion")
-        plt.show()
+        plt.savefig("img/Matrice_de_confusion.png")
 
         # Sauvegarde du modèle KNN
         save_path = ask_save_file(knn_model_output)
