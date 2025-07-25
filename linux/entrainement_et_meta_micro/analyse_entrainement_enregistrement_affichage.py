@@ -37,8 +37,12 @@ def ask_save_file(default_path):
         initialfile=os.path.basename(default_path),
         title="Sauvegarder le fichier sous…"
     )
-    return file_path if file_path else None
 
+    if file_path:
+        launch_dir = os.getcwd()  # Répertoire d'où le script est lancé
+        rel_path = os.path.relpath(file_path, start=launch_dir)
+        return rel_path
+    return None
 
 # Fonctions pour lancer l'analyse de l'audio dans un thread
 def process_audio():

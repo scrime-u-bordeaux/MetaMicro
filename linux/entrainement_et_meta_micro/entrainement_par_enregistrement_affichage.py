@@ -102,8 +102,8 @@ def countdown(seconds):
 def ask_save_file(audio_frames, p, default_path):
     # Boîte de dialogue pour choisir le fichier
     file_path = filedialog.asksaveasfilename(
-        defaultextension=".csv" if default_path.endswith(".csv") else ".pkl",
-        filetypes=[("Fichiers CSV", "*.csv"), ("Fichiers Joblib", "*.pkl")],
+        defaultextension=".wav",
+        filetypes=[("Fichiers WAV", "*.wav")],
         initialfile=os.path.basename(default_path),
         title="Sauvegarder le fichier sous…"
     )
@@ -116,12 +116,15 @@ def ask_save_file(audio_frames, p, default_path):
     if folder and not os.path.exists(folder):
         os.makedirs(folder)
 
-    # Ajout au YAML
-    config["calcul_mfcc"]["file_path_audio_non_concat"] = file_path
-    save_yaml()
-    log(f"YAML mis à jour : {file_path}")
+    # Convertir le chemin absolu en chemin relatif
+    rel_path = os.path.relpath(file_path, start=os.getcwd())
 
-    # Sauvegarde du fichier
+    # Enregistrer le chemin relatif dans le YAML
+    config["calcul_mfcc"]["file_path_audio_non_concat"] = rel_path
+    save_yaml()
+    log(f"YAML mis à jour : {rel_path}")
+
+    # Sauvegarde du fichier audio
     with wave.open(file_path, "wb") as wf:
         wf.setnchannels(CHANNELS)
         wf.setsampwidth(p.get_sample_size(FORMAT))

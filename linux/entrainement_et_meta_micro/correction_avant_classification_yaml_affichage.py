@@ -34,16 +34,16 @@ def save_yaml():
 def ask_save_file(default_path):
     file_path = filedialog.asksaveasfilename(
         defaultextension=".csv" if default_path.endswith(".csv") else ".pkl",
-        filetypes=[
-            ("Fichiers CSV", "*.csv"),
-            ("Fichiers Joblib", "*.pkl"),
-            ("Tous les fichiers", "*.*")
-        ],
+        filetypes=[("Fichiers CSV", "*.csv"), ("Fichiers Joblib", "*.pkl")],
         initialfile=os.path.basename(default_path),
-        initialdir=os.path.dirname(default_path),
         title="Sauvegarder le fichier sous…"
     )
-    return file_path if file_path else None
+
+    if file_path:
+        launch_dir = os.getcwd()  # Répertoire d'où le script est lancé
+        rel_path = os.path.relpath(file_path, start=launch_dir)
+        return rel_path
+    return None
 
 ##########################################################################################
 # CORRECTION DES DONNÉES
