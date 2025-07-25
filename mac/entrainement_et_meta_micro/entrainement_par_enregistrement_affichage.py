@@ -17,6 +17,7 @@ with open(yaml_path, "r") as file:
 # Chemin de sortie
 output_path = config["calcul_mfcc"]["file_path_audio_non_concat"]
 device_index = config["main_respiro"]["output_device_index"]  
+device_index_in = config["main_respiro"]["input_device_index"]
 
 ##########################################################################################
 # PARAMÈTRES AUDIO
@@ -49,14 +50,22 @@ def record_audio():
     p = pyaudio.PyAudio()
 
     # Ouverture du flux
-    stream = p.open(
-        format=FORMAT,
-        channels=CHANNELS,
-        rate=RATE,
-        input=True,
-        output_device_index=device_index,
-        frames_per_buffer=CHUNK,
-    )
+    stream_args = {
+        "format": FORMAT,
+        "channels": CHANNELS,
+        "rate": RATE,
+        "input": True,
+        "frames_per_buffer": CHUNK,
+        # "stream_callback": callback  # Décommenter si vous utilisez un callback
+    }
+
+    if device_index is not None:
+        stream_args["output_device_index"] = device_index
+
+    if device_index_in is not None:
+        stream_args["input_device_index"] = device_index_in
+
+    stream = p.open(**stream_args)
     audio_frames = []
 
     # # Instructions pour l'utilisateur

@@ -1,12 +1,11 @@
 calcul_mfcc:
   letters:
   - a
-  - i
   file_path_ta: mac/entrainement_et_meta_micro/ta_ti_i.wav
   file_path_ta_text: mac/entrainement_et_meta_micro/ta_ti_i.txt
-  file_path_txt_non_concat: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/mon_fichier.txt
+  file_path_txt_non_concat: dossier_entrainement/mon_fichier.txt
   file_path_txt: mac/entrainement_et_meta_micro/text.txt
-  file_path_audio_non_concat: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/mon_fichier.wav
+  file_path_audio_non_concat: dossier_entrainement/mon_fichier.wav
   file_path_audio: mac/entrainement_et_meta_micro/audio.wav
   time_of_block: 0.005
   recouvrement_block: 0.5
@@ -19,10 +18,10 @@ calcul_mfcc:
     zero_crossing: true
     centroid: false
     slope: true
-  output_path: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/mfcc_features.csv
+  output_path: dossier_entrainement/mfcc_features.csv
 correction_avant_classification:
   seuil_de_correction: 0.7
-  output_path: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/mfcc_features_marqueurs_corrige.csv
+  output_path: dossier_entrainement/mfcc_features_marqueurs_corrige.csv
 classification:
   if_suppression_mfcc:
     suppression_mfcc: false
@@ -38,15 +37,20 @@ classification:
     random_state: 42
     n_neighbors_max: 50
   outputs:
-    mean_X_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/mean_X.csv
-    std_X_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/std_X.csv
-    proj_pca_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/X_proj_scaled_marqueurs.csv
-    eigenvectors_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/eigenvectors_marqueurs.csv
-    knn_model_output: /Users/noemiekt/Documents/MetaMicro/dossier_entrainement/knn_model.csv
+    mean_X_output: dossier_entrainement/mean_X.csv
+    std_X_output: dossier_entrainement/std_X.csv
+    proj_pca_output: dossier_entrainement/X_proj_scaled_marqueurs.csv
+    eigenvectors_output: dossier_entrainement/eigenvectors_marqueurs.csv
+    knn_model_output: dossier_entrainement/knn_model.csv
 main_respiro:
+  fluidsynth: false
+  input_device_index: null
+  output_device_index: 4
+  canal_midi_sans_respiro: 0
+  instrument_sans_respiro: 73
   port_name_respiro: IAC Driver Bus 1 Bus 1
   port_name_midifile: IAC Driver Bus 1 Bus 2
-  rms_max: 374.1106605853893
+  rms_max: 375
   CHANNEL_RESPIRO: 0
   CC_rms: 2
   CC_i: 9

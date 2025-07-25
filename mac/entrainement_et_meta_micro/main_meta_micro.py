@@ -5,6 +5,7 @@ import os
 import subprocess
 from tkinter import font
 import mido
+import pyaudio
 
 ##########################################################################################
 # CHARGER YAML
@@ -21,7 +22,8 @@ with open(get_yaml_path(), "r") as file:
 # DESCRIPTIONS DES PARAMETRES
 param_descriptions = {
     "fluidsynth" : "Ecrire True (pour utiliser fluidsynth) ou False (pour ne pas utiliser fluidsynth)",
-    "output_device_index" : "Indice du flux audio",
+    "input_device_index" : "Indice du flux audio pour l'input, choisir None si il n'est pas utile",
+    "output_device_index" : "Indice du flux audio pour l'output, choisir None si il n'est pas utile",
     "canal_midi_sans_respiro" : "Canal à utiliser pour Fluidsynth",
     "instrument_sans_respiro" : "Numéro de l'instrument MIDI pour Fluidsynth",
     "rms_max": "Valeur maximale du RMS utilisée pour normaliser le volume. A modifier à la main ou avec l'option 'calculer souffle maximum'",
@@ -99,6 +101,19 @@ def create_info_button(parent, param_name):
         width=2,
         height=1
     )
+
+# Liste des périphériques audio disponibles
+try:
+    p = pyaudio.PyAudio()
+    audio_devices = [("None", None)]
+    for i in range(p.get_device_count()):
+        info = p.get_device_info_by_index(i)
+        name = info.get("name", f"Device {i}")
+        audio_devices.append((f"{name} (index {i})", i))
+    p.terminate()
+except Exception as e:
+    audio_devices = [("Erreur détection audio", None)]
+    log(f"Erreur lors de la détection des périphériques audio : {e}")
 
 ##########################################################################################
 # FONCTION POUR LANCER LES SCRIPTS
@@ -211,6 +226,16 @@ def open_param_window():
                     pady=5
                 )
                 file_button.pack(side="right")
+            elif param in ["input_device_index", "output_device_index"]:
+                audio_var = tk.StringVar()
+                # Trouver l'élément de la liste audio_devices qui correspond à la valeur actuelle
+                matching = next((name for name, idx in audio_devices if idx == value), "None")
+                audio_var.set(matching)
+
+                dropdown = tk.OptionMenu(row, audio_var, *[name for name, _ in audio_devices])
+                dropdown.config(font=("Arial", 10), bg="#34495e", fg="black", width=40)
+                dropdown.pack(side="right", fill="x", expand=True)
+                midi_vars[param] = (audio_var, audio_devices)
             elif param in ["port_name_respiro", "port_name_midifile"]:
                 midi_var = tk.StringVar()
                 midi_var.set(value if value in midi_ports else midi_ports[0])
@@ -249,7 +274,12 @@ def open_param_window():
             ref[parts[-1]] = value
 
         for key, var in midi_vars.items():
-            config["main_respiro"][key] = var.get()
+            if key in ["input_device_index", "output_device_index"]:
+                selected_name = var[0].get()
+                device_index = next((idx for name, idx in var[1] if name == selected_name), None)
+                config["main_respiro"][key] = device_index
+            else:
+                config["main_respiro"][key] = var.get()
         save_yaml()
         log("Paramètres main_respiro mis à jour.")
         messagebox.showinfo("Sauvegarde", "Les paramètres ont été enregistrés.")

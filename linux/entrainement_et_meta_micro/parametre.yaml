@@ -44,6 +44,7 @@ classification:
     knn_model_output: dossier_entrainement/knn_model.pkl
 main_respiro:
   fluidsynth: true
+  input_device_index: null
   output_device_index: 4
   canal_midi_sans_respiro: 0
   instrument_sans_respiro: 73

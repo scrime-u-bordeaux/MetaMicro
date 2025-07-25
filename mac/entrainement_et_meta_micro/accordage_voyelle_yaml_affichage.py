@@ -74,6 +74,7 @@ CC_i = main_respiro_param["CC_i"]   # Channel 9: changement de timbre i
 CC_u = main_respiro_param["CC_u"]  # Channel 14: changment de timbre u
 CC_a = main_respiro_param["CC_a"]  # changment de timbre a
 device_index = main_respiro_param["output_device_index"]  
+device_index_in = main_respiro_param["input_device_index"]  
 
 # Charger le fichier MIDI
 midi_file = mido.MidiFile(main_respiro_param["midi_file"])
@@ -156,19 +157,25 @@ def callback(in_data, frame_count, time_info, status):
     return (in_data, pyaudio.paContinue)
 
 # Ouverture du flux audio
-stream = p.open(
-    format=FORMAT,
-    channels=CHANNELS,
-    rate=RATE,
-    input=True,
-    # input_device_index=6,
-    output_device_index=device_index,
-    frames_per_buffer=CHUNK,
-    # stream_callback=callback
-)
+stream_args = {
+    "format": FORMAT,
+    "channels": CHANNELS,
+    "rate": RATE,
+    "input": True,
+    "frames_per_buffer": CHUNK,
+    # "stream_callback": callback  # Décommenter si vous utilisez un callback
+}
+
+if device_index is not None:
+    stream_args["output_device_index"] = device_index
+
+if device_index_in is not None:
+    stream_args["input_device_index"] = device_index_in
+
+stream = p.open(**stream_args)
 audio_frames = []
 frames = []
-
+    
 # Initialisation des paramètres MFCC
 mfcc_features = []
 time_values = []
