@@ -118,7 +118,7 @@ Choisissez parmi :
 
 #### 2. Enregistrement vocal
 
-Un tutoriel intégré vous guide pour enregistrer votre voix avec les sons choisis.
+Un tutoriel intégré vous guide pour enregistrer votre voix avec les sons choisis. Il est conseillé de faire l'entrainement avec un gain d'entrée élevé.
 
 #### 3. Analyse
 
@@ -131,6 +131,9 @@ Une fenêtre d’analyse s’ouvre automatiquement
 
 Trois fenêtres s’affichent pour effectuer les calculs.  
 > La **2e fenêtre peut être lente à apparaître**.
+
+- Sur Mac, vous pouvez observer des figures détaillant les calculs
+- Sur Linux, vous pouvez les récupérer dans le dossier img/
 
 #### 5. Sauvegarde des fichiers
 
